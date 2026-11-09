@@ -423,7 +423,7 @@ const WIRES_RAW = [
  [52,"",["gn"],0.75,"Gb:C1","F:F5a","blink","L"],
  [53,"",["gn","rt"],0.75,"Gb:C2","F:F5b","blink","L"],
  [54,"",["gn","ge"],0.75,"Gb:C3","F:F5c","blink","L"],
- [55,"*",["sw","ws","gn"],1.5,"Gb:49a","Ha:49a","blink","L"],
+ [55,"*",["sw","ws","gn"],1.5,"Gb:49a","Ha:49a","blink","L+P","Am Ha ist die Klemme am rechten Druckrand abgeschnitten („Klemme 49…“). Ha hat laut Plan nur die Klemme 49a; auch Kabel 55** endet dort."],
  [55,"**",["sw","ws","gn"],1.5,"O:S1a","Ha:49a","blink","L"],
  [56,"",["sw"],2.5,"O:S1e","Hb:15","licht","L","Laut Plan sitzt Kabel 56 oben an Sicherung 1, also auf der Zuleitungsseite. Dort ist Sicherung 1 über die Brücke mit Sicherung 2 und Kabel 70 (K Klemme 15) verbunden. Kabel 56 liegt damit vor den Sicherungen."],
  [57,"",["sw","ws"],1.5,"O:S1a","Gb:49","blink","L+P","Die Sicherungsnummer ist in der Kabelliste am Seitenrand abgeschnitten. Im Plan G168 führt die Leitung 57 eindeutig zur Unterseite von Sicherung 1."],
@@ -938,15 +938,17 @@ function renderHints(){
   <p>Fotos aus der Betriebsanleitung: die Schaltpläne G168 (bis 20 km/h) und G167 (über 20 km/h), die Bauteilliste und die vollständige Kabelliste Nr. 1 bis 94 (S. 49–51). Jedes Kabel ist mit seiner Quelle gekennzeichnet.</p>
   <ul>
    <li><span class="badge b-ok">Kabelliste</span> ${nL} Einträge wörtlich aus der Kabelliste: Farbe, Querschnitt, beide Enden.</li>
-   <li><span class="badge b-warn">Kabelliste + Plan</span> ${nLP} Einträge, bei denen eine Angabe fehlt und im Plan abgelesen wurde: Auf Seite 50 ist der rechte Rand schon im Druck abgeschnitten (Kabel 50, 51, 57, 60). Bei 35, 36 und 40 nennt die Liste nur „Klemme 58“ ohne oben/unten, bei 66 keine Klemme am Hb, bei 49** und 88** kein Pol an Fc.</li>
+   <li><span class="badge b-warn">Kabelliste + Plan</span> ${nLP} Einträge, bei denen eine Angabe fehlt und im Plan abgelesen wurde: Auf Seite 50 ist der rechte Rand schon im Druck abgeschnitten (Kabel 50, 51, 55*, 57, 60). Bei 35, 36 und 40 nennt die Liste nur „Klemme 58“ ohne oben/unten, bei 66 keine Klemme am Hb, bei 49** und 88** kein Pol an Fc.</li>
    <li>Kabel 59, 69 und 82 haben keine eigene Linie: 59 und 69 sind interne Verbindungen in den Instrumenten, 82 ist die Masse an den Blinkleuchten (Massezeichen an den Leuchten).</li>
   </ul>
   <p>Die Zeichnung ist eine saubere Neuanordnung, keine Kopie der Linienführung. Welche Klemme mit welcher verbunden ist, entspricht der Kabelliste; der Weg der Linie auf dem Blatt ist frei gewählt.</p>
   <h2>Abgleich mit dem Plan</h2>
   <p>Alle Kabel wurden einzeln mit vergrößerten Ausschnitten beider Pläne verglichen. Am Sicherungskasten lassen sich im Plan G168 die Kabel 1, 3, 5, 6, 15, 16, 17, 56, 57, 70 und 71 bis zu ihrer Sicherung verfolgen; sie stimmen mit der Kabelliste überein. Ebenso die Belegung von Pb, Pc und Pe sowie die Klemmen an Ha, Hb, Gb, K, M und N.</p>
+  <p>Zusätzlich wurde die gesamte Kabelliste ein zweites Mal unabhängig von den Fotos abgeschrieben und maschinell mit diesen Daten verglichen: Alle 99 Einträge (94 Nummern, davon 5 mit * und **) stimmen in Farbe, Querschnitt und beiden Enden überein.</p>
   <p>Bei Kabel 20 bis 36 sind auf Seite 50 die Nummern am linken Rand abgeschnitten. Die 17 Einträge folgen lückenlos aufeinander, und ihre Nummern stehen im Plan genau an den genannten Klemmen. Die Zuordnung ist damit gesichert.</p>
   <h2>Ergänzende Angaben aus dem Plan</h2>
   <ul>
+   <li>Kabel 55*: Die Klemme am Ha ist abgeschnitten („49…“). Ha hat nur die Klemme 49a.</li>
    <li>Kabel 57: Die Sicherungsnummer fehlt in der Kabelliste. Im Plan G168 führt die Leitung 57 eindeutig zu Sicherung 1.</li>
    <li>Kabel 50 und 51: Die Klemme am La fehlt in der Kabelliste. Nach Plan: 50 an Klemme 1, 51 an Klemme 2.</li>
    <li>Kabel 60: Die Klemme an Pc fehlt in der Kabelliste. Nach Plan: Klemme 3, wo auch Kabel 71 von Sicherung 2 ankommt.</li>
