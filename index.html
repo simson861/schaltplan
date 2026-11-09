@@ -66,11 +66,11 @@ main{padding-block:14px 32px}
 
 /* Plan */
 .planwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;height:calc(100vh - 150px);height:calc(100dvh - 150px);min-height:520px}
-.stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0;touch-action:none}
-.stage svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;-webkit-user-select:none}
+.planmain{display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0}
+.stage{position:relative;flex:1;min-height:0;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0}
+.stage svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
 .stage svg.dragging{cursor:grabbing}
-.tools{position:absolute;left:10px;top:10px;right:10px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:none}
-.tools > *{pointer-events:auto}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 10px 4px 8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .chip i{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px var(--casing)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -171,7 +171,9 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
   main{padding-block:10px 96px}
   .planwrap{display:block;height:auto;min-height:0}
   .stage{height:calc(100vh - 250px);height:calc(100dvh - 250px);min-height:320px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)) + 8px)}
-  .tools{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;right:0;left:0;padding-inline:8px;top:8px}
+  .planmain{display:flex}
+  .stage{flex:none}
+  .tools{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;scrollbar-width:none;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px));padding-block:2px}
   .tools::-webkit-scrollbar{display:none}
   .chip{flex:0 0 auto;padding:7px 12px 7px 10px}
   .zoom{right:8px;bottom:8px}
@@ -226,11 +228,13 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
 <main>
   <section class="view" id="v-plan">
     <div class="planwrap">
+      <div class="planmain">
+      <div class="tools" id="chips" role="group" aria-label="Stromkreise hervorheben"></div>
       <div class="stage" id="stage">
         <svg id="svg" xmlns="http://www.w3.org/2000/svg" aria-label="Schaltplan"></svg>
-        <div class="tools" id="chips"></div>
         <div class="zoom"><button id="zin" aria-label="Vergrößern">+</button><button id="zout" aria-label="Verkleinern">−</button><button id="zfit" aria-label="Ganzen Plan zeigen" style="font-size:13px">⤢</button></div>
         <div class="hint" id="hint">Ziehen = verschieben · Mausrad/2 Finger = Zoom · Klick = Details</div>
+      </div>
       </div>
       <aside class="info collapsed" id="info"><button class="sheet-bar" id="sheetbar" aria-expanded="false" aria-controls="infobody"><span class="grip"></span><span class="st"><span id="sheettitle">Schaltplan</span><small id="sheethint">Details ▲</small></span></button><div id="infobody" aria-live="polite"></div></aside>
     </div>
@@ -752,7 +756,7 @@ function setVB(){svg.setAttribute("viewBox",`${view.x} ${view.y} ${view.w} ${vie
 function sizeStage(){const st=document.getElementById("stage");if(!mqMobile.matches){st.style.height="";return}
   const top=st.getBoundingClientRect().top+scrollY;const bar=document.getElementById("sheetbar").offsetHeight||64;
   st.style.height=Math.max(320,Math.round(innerHeight-top-bar-14))+"px"}
-function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)return;const top=document.getElementById("chips").offsetHeight+16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
+function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)return;const top=16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
 function zoomAt(f,cx,cy){const r=svg.getBoundingClientRect();const px=view.x+(cx-r.left)/r.width*view.w, py=view.y+(cy-r.top)/r.height*view.h;
   const nw=Math.min(Math.max(view.w*f,120),W*3); const k=nw/view.w; view.x=px-(px-view.x)*k; view.y=py-(py-view.y)*k; view.w=nw; view.h*=k; setVB()}
 const ptrs=new Map(); let dragMoved=false, pinch0=null, start=null;
@@ -874,6 +878,7 @@ info.addEventListener("click",e=>{const b=e.target.closest("[data-gow],[data-goc
 
 function renderChips(){
   const box=document.getElementById("chips");
+  if(box.childElementCount){box.querySelectorAll("[data-cir]").forEach(b=>b.setAttribute("aria-pressed",String(!!(sel&&sel.type==="circuit"&&sel.id===b.dataset.cir))));return}
   box.innerHTML=Object.entries(CIRCUITS).map(([k,[n,c]])=>`<button class="chip" data-cir="${k}" aria-pressed="${sel&&sel.type==="circuit"&&sel.id===k}"><i style="background:${c}"></i>${n}</button>`).join("");
 }
 document.getElementById("chips").addEventListener("click",e=>{const b=e.target.closest("[data-cir]");if(!b)return;const k=b.dataset.cir;
