@@ -200,9 +200,11 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
   #v-kabel td[data-l="von"],#v-kabel td[data-l="nach"]{flex:1 1 100%}
   #v-kabel td[data-l]::before{content:attr(data-l);color:var(--ink-2);font-size:12px;display:inline-block;min-width:38px}
   #v-kabel td[data-l="mm²"]::before{min-width:0;margin-right:4px}
-  .fuse-tbl{font-size:13.5px}
-  .fuse-tbl td{padding:7px 8px}
-  .fuse-tbl td:first-child{width:44px;font-size:20px}
+  .fuse-tbl thead{display:none}
+  .fuse-tbl tbody tr{display:block;position:relative;padding:10px 12px 10px 56px;border-bottom:1px solid var(--line)}
+  .fuse-tbl td{display:block;border:0;padding:2px 0}
+  .fuse-tbl td:first-child{position:absolute;left:12px;top:8px;width:auto;font-size:24px}
+  .fuse-tbl td[data-l]::before{content:attr(data-l);display:block;color:var(--ink-2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
 }
 @media (prefers-reduced-motion:no-preference){.wire,.comp{transition:opacity .15s}}
 </style>
@@ -922,7 +924,7 @@ function renderFuses(){
     let feed=top.map(chip).join("<br>");
     if(br){const others=br.filter(n=>n!==i);const src=br.flatMap(n=>wl("O:S"+n+"e")).filter(w=>!top.includes(w));
       feed+=(feed?"<br>":"")+`<small>Brücke mit Sicherung ${others.join(", ")}${src.length?` (dort oben: Kabel ${src.map(w=>w.n+w.v).join(", ")})`:""}</small>`}
-    rows.push(`<tr data-f="${i}"><td>${i}</td><td>${feed||"–"}</td><td>${bot.length?bot.map(chip).join("<br>"):"–"}</td><td>${ends.length?ends.map(c=>`${c} <small>(${esc(compById[c].name)})</small>`).join("<br>"):"–"}</td></tr>`)}
+    rows.push(`<tr data-f="${i}"><td>${i}</td><td data-l="oben (Zuleitung)">${feed||"–"}</td><td data-l="unten (Abgang)">${bot.length?bot.map(chip).join("<br>"):"–"}</td><td data-l="versorgt">${ends.length?ends.map(c=>`${c} <small>(${esc(compById[c].name)})</small>`).join("<br>"):"–"}</td></tr>`)}
   document.getElementById("ftb").innerHTML=rows.join("");
 }
 document.getElementById("ftb").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;const f=tr.dataset.f;const r=traceNet(["O:S"+f+"a"],{raw:true});
@@ -971,12 +973,14 @@ document.getElementById("q").addEventListener("keydown",e=>{if(e.key!=="Enter")r
       const u=UNRESOLVED.find(x=>x[0]==+m[1]&&visibleVar(x[1]));const it=INTERNAL.find(x=>x[0]==+m[1]);
       select(null);if(mqMobile.matches)setSheet(true);setSheetTitle(`Kabel ${m[1]}`);
       info.innerHTML=it?`<h2>Kabel ${it[0]}</h2><p>${swatch(it[2])} ${colorName(it[2])}, ${fmtMM(it[3])} mm²</p><p>${esc(it[4])}.</p><p>${esc(it[7])}</p>`
-        :u?`<h2>Kabel ${u[0]}${u[1]}</h2><p>${u[2]?esc(u[2])+". ":""}Dieses Kabel steht auf Seite 51 der Kabelliste, die nicht vorliegt. Es ist deshalb nicht eingezeichnet.</p>`:`<h2>Nicht gefunden</h2><p>Kein Kabel ${esc(v)} in der Ausführung ${VAR_LABEL[variant]}.</p>`;
+        :u?`<h2>Kabel ${u[0]}${u[1]}</h2><p>${u[2]?esc(u[2])+". ":""}Dieses Kabel steht auf Seite 51 der Kabelliste, die nicht vorliegt. Es ist deshalb nicht eingezeichnet.</p>`:(()=>{const o=WIRES.find(w=>w.n==+m[1]&&!visibleVar(w.v));return o?`<h2>Kabel ${o.n}${o.v}</h2><p>Dieses Kabel gibt es nur in der Ausführung <b>${VAR_LABEL[o.v]}</b>.</p><div class="row"><button class="btn" id="swv" data-v="${o.v}" data-k="${o.key}">Zur Ausführung ${VAR_LABEL[o.v]} wechseln</button></div>`:`<h2>Nicht gefunden</h2><p>Kein Kabel ${esc(v)} in der Ausführung ${VAR_LABEL[variant]}.</p>`})();
+      const sb=document.getElementById("swv");if(sb)sb.onclick=()=>{setVariant(sb.dataset.v);select({type:"wire",key:sb.dataset.k},{focus:true})};
       return}
     const c=COMPS.find(c=>c.code!==""&&c.id.toLowerCase()===v.toLowerCase())||COMPS.find(c=>c.code!==""&&c.name.toLowerCase().includes(v.toLowerCase()));
     if(c&&visibleVar(c.var||""))select({type:"comp",id:c.id},{focus:true});
-    else {if(mqMobile.matches)setSheet(true);setSheetTitle("Nicht gefunden");}
-    if(!(c&&visibleVar(c.var||"")))info.innerHTML=`<h2>Nicht gefunden</h2><p>Kein Bauteil „${esc(v)}“ in der Ausführung ${VAR_LABEL[variant]}.</p>`;
+    else {if(mqMobile.matches)setSheet(true);setSheetTitle(c?c.id:"Nicht gefunden");}
+    if(c&&!visibleVar(c.var||"")){info.innerHTML=`<h2>${esc(c.id)} · ${esc(c.name)}</h2><p>Dieses Bauteil gibt es nur in der Ausführung <b>${VAR_LABEL[c.var]}</b>.</p><div class="row"><button class="btn" id="swv">Zur Ausführung ${VAR_LABEL[c.var]} wechseln</button></div>`;setSheetTitle(c.id+" · "+c.name);document.getElementById("swv").onclick=()=>{setVariant(c.var);select({type:"comp",id:c.id},{focus:true})}}
+    else if(!c)info.innerHTML=`<h2>Nicht gefunden</h2><p>Kein Bauteil „${esc(v)}“.</p>`;
   },30);
 });
 function setVariant(v){variant=v;document.getElementById("var-le20").setAttribute("aria-pressed",v==="*");document.getElementById("var-gt20").setAttribute("aria-pressed",v==="**");
@@ -990,7 +994,7 @@ document.getElementById("var-gt20").onclick=()=>setVariant("**");
 const VIEWS=["plan","kabel","bauteile","sicherungen","original","hinweise"];
 function showView(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):"plan";
   for(const x of VIEWS)document.getElementById("v-"+x).hidden=x!==v;
-  document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===v?"page":"false"));
+  document.querySelectorAll("nav.tabs a").forEach(a=>{a.setAttribute("aria-current",a.dataset.v===v?"page":"false");if(a.dataset.v===v)a.scrollIntoView({block:"nearest",inline:"nearest"})});
   if(v==="plan")requestAnimationFrame(()=>{if(!showView.fitted){fit();showView.fitted=true}});}
 window.addEventListener("hashchange",showView);
 let rzT;window.addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(!document.getElementById("v-plan").hidden)fit()},120)});
