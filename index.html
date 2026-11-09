@@ -107,6 +107,7 @@ ul.plain li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;gap:8
 .c-name{font:500 9.5px var(--f-body);fill:var(--ink-2)}
 .t-lbl{font:600 8.5px var(--f-mono);fill:var(--ink)}
 .t-dot{fill:var(--comp-stroke)}
+.c-bridge{fill:var(--accent);stroke:none}
 .comp{cursor:pointer}
 .comp.var-off{display:none}
 .wire{cursor:pointer}
@@ -241,8 +242,8 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
   <section class="view" id="v-bauteile" hidden><div class="grid-cards" id="bgrid"></div></section>
 
   <section class="view" id="v-sicherungen" hidden>
-    <p class="prose">Belegung des Sicherungskastens <b>O</b>, zusammengestellt aus der Kabelliste. Ein Klick auf eine Zeile zeigt den ganzen Stromkreis hinter der Sicherung im Plan.</p>
-    <div class="tablewrap"><table class="fuse-tbl"><thead><tr><th>Sich.</th><th>Kabel</th><th>versorgt</th></tr></thead><tbody id="ftb"></tbody></table></div>
+    <p class="prose">Belegung des Sicherungskastens <b>O</b>: Sicherungsnummer aus der Kabelliste, Seite oben/unten und Brücken aus dem Plan. Im Kasten sind die Oberseiten der Sicherungen 1–2 und 3–6 gebrückt. Ein Klick auf eine Zeile zeigt im Plan alles, was hinter der Sicherung hängt.</p>
+    <div class="tablewrap"><table class="fuse-tbl"><thead><tr><th>Sich.</th><th>oben (Zuleitung)</th><th>unten (Abgang)</th><th>versorgt</th></tr></thead><tbody id="ftb"></tbody></table></div>
   </section>
 
   <section class="view" id="v-original" hidden>
@@ -257,7 +258,7 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
 
   <section class="view" id="v-hinweise" hidden><div class="prose" id="hin"></div></section>
 </main>
-<footer>Quelle: Betriebsanleitung IHC McCormick 323 (Stand 12.66), Schaltpläne G167/G168 und Kabelliste S. 49–50. Inoffizielle Nachzeichnung. Vor Arbeiten an der Elektrik Batterie abklemmen.</footer>
+<footer>Quelle: Betriebsanleitung IHC McCormick 323 (Stand 12.66), Schaltpläne G167/G168 und Kabelliste S. 49–51. Inoffizielle Nachzeichnung. Vor Arbeiten an der Elektrik Batterie abklemmen.</footer>
 
 <script>
 "use strict";
@@ -320,8 +321,9 @@ const COMPS = [
  {id:"GND5",name:"Masse",shape:"gnd",x:760,y:130,w:20,h:20,code:"",terms:[["M","","t",770]]},
  {id:"K",name:"Schaltkasten",shape:"box",x:800,y:40,w:120,h:80,terms:[["30","30","l",70],["56","56","t",860,"Kabel 66 im Plan"],["58","58","b",830],["15","15","b",890]]},
  {id:"Hb",name:"Schrittschaltrelais",shape:"box",x:940,y:40,w:150,h:70,terms:[["56a","56a","b",960],["56b","56b","b",980],["15","15","b",1010],["31b","31b","b",1040],["56","56","b",1070]]},
- {id:"O",name:"Sicherungskasten",shape:"fuse",x:600,y:200,w:250,h:70,terms:[
-   ["S1","1","tb",620],["S2","2","tb",650],["S3","3","tb",680],["S4","4","tb",710],["S5","5","tb",740],["S6","6","tb",770],["S7","7","tb",800],["S8","8","tb",830]]},
+ {id:"O",name:"Sicherungskasten",shape:"fuse",extra:"Laut Plan sind im Kasten die Oberseiten der Sicherungen 1–2 und 3–6 gebrückt (rote Balken). Oben kommt die Zuleitung an, unten gehen die abgesicherten Kabel ab.",x:600,y:200,w:250,h:70,terms:[
+   ["S1e","1","t",620,"Sicherung 1 oben (Zuleitung)"],["S1a","1","b",620,"Sicherung 1 unten (Abgang)"],["S2e","2","t",650,"Sicherung 2 oben (Zuleitung)"],["S2a","2","b",650,"Sicherung 2 unten (Abgang)"],["S3e","3","t",680,"Sicherung 3 oben (Zuleitung)"],["S3a","3","b",680,"Sicherung 3 unten (Abgang)"],["S4e","4","t",710,"Sicherung 4 oben (Zuleitung)"],["S4a","4","b",710,"Sicherung 4 unten (Abgang)"],["S5e","5","t",740,"Sicherung 5 oben (Zuleitung)"],["S5a","5","b",740,"Sicherung 5 unten (Abgang)"],["S6e","6","t",770,"Sicherung 6 oben (Zuleitung)"],["S6a","6","b",770,"Sicherung 6 unten (Abgang)"],["S7e","7","t",800,"Sicherung 7 oben (Zuleitung)"],["S7a","7","b",800,"Sicherung 7 unten (Abgang)"],["S8e","8","t",830,"Sicherung 8 oben (Zuleitung)"],["S8a","8","b",830,"Sicherung 8 unten (Abgang)"]],
+   bridges:[[1,2],[3,4,5,6]]},
  {id:"F",name:"Kombiinstrument",shape:"kombi",x:700,y:320,w:260,h:280,terms:[
    ["F3","F3","l",430,"Ladekontrolllampe"],["F6","F6","l",450,"Motortemperaturkontrolle"],["F2","F2","l",470,"Öldruckkontrolllampe Motor"],["F4","F4","l",510,"Kraftstoffkontrolle"],
    ["F1","F1","t",740,"Fernlichtkontrolllampe"],["Bel","Bel.","t",780,"Instrumentenbeleuchtung"],
@@ -354,23 +356,23 @@ const W = 1120, H = 1320;
 
 /* Kabel: [Nr, Ausf., Farben, mm², von, nach, Kreis, Quelle, Hinweis] */
 const WIRES_RAW = [
- [1,"",["ws"],2.5,"O:S8","Hb:56a","licht","L"],
- [2,"",["hbl","ws"],0.75,"O:S8","F:F1","licht","L"],
- [3,"",["ws"],2.5,"O:S8","Pc:2","licht","L"],
+ [1,"",["ws"],2.5,"O:S8e","Hb:56a","licht","L"],
+ [2,"",["hbl","ws"],0.75,"O:S8a","F:F1","licht","L"],
+ [3,"",["ws"],2.5,"O:S8a","Pc:2","licht","L"],
  [4,"",["ws"],1.5,"Pc:2","Ar:56a","licht","L"],
- [5,"",["ge"],2.5,"O:S7","Hb:56b","licht","L"],
- [6,"",["ge"],2.5,"O:S7","Pc:4","licht","L"],
+ [5,"",["ge"],2.5,"O:S7e","Hb:56b","licht","L"],
+ [6,"",["ge"],2.5,"O:S7a","Pc:4","licht","L"],
  [7,"",["ws"],1.5,"Pc:2","Al:56a","licht","L"],
  [8,"",["rt"],6,"K:30","Pe:1","start","L"],
  [9,"",["rt"],6,"Pe:1","Lm:30","start","L"],
  [10,"",["sw"],40,"Lm:30","D:+","start","L"],
  [11,"",["rt"],4,"Lm:30","M:B+","start","L"],
  [12,"",["ge"],1.5,"Pc:4","Al:56b","licht","L"],
- [13,"",["gr"],2.5,"O:S6","K:58","stand","L"],
- [14,"",["gr","rt"],0.75,"O:S6","E:Bel","stand","L"],
- [15,"",["gr","rt"],0.75,"O:S5","F:Bel","stand","L"],
- [16,"",["gr","sw"],1.5,"O:S4","Pa:2","stand","L"],
- [17,"",["gr","rt"],1.5,"O:S3","Pa:1","stand","L"],
+ [13,"",["gr"],2.5,"O:S6e","K:58","stand","L","Speist laut Plan oben Sicherung 6 und über die Brücke auch die Sicherungen 3, 4 und 5 (alles Klemme 58)."],
+ [14,"",["gr","rt"],0.75,"O:S6a","E:Bel","stand","L"],
+ [15,"",["gr","rt"],0.75,"O:S5a","F:Bel","stand","L"],
+ [16,"",["gr","sw"],1.5,"O:S4a","Pa:2","stand","L"],
+ [17,"",["gr","rt"],1.5,"O:S3a","Pa:1","stand","L"],
  [18,"",["ge"],1.5,"Pc:4","Ar:56b","licht","L"],
  [19,"",["sw"],1.5,"Ga:50a","Pb:1","start","L"],
  [20,"",["sw"],1.5,"Pb:1","Lm:50a","start","L","Bei Kabel 20 bis 36 ist die Nummer im Foto der Kabelliste abgeschnitten; sie ergibt sich aus der lückenlosen Reihenfolge und steht im Plan an Pb Klemme 1."],
@@ -413,9 +415,9 @@ const WIRES_RAW = [
  [53,"",["gn","rt"],0.75,"Gb:C2","F:F5b","blink","L"],
  [54,"",["gn","ge"],0.75,"Gb:C3","F:F5c","blink","L"],
  [55,"*",["sw","ws","gn"],1.5,"Gb:49a","Ha:49a","blink","L"],
- [55,"**",["sw","ws","gn"],1.5,"O:S1","Ha:49a","blink","L"],
- [56,"",["sw"],2.5,"O:S1","Hb:15","licht","L"],
- [57,"",["sw","ws"],1.5,"O:S1","Gb:49","blink","L+P","Die Sicherungsnummer ist in der Kabelliste am Seitenrand abgeschnitten. Im Plan G168 führt die Leitung 57 eindeutig zur Unterseite von Sicherung 1."],
+ [55,"**",["sw","ws","gn"],1.5,"O:S1a","Ha:49a","blink","L"],
+ [56,"",["sw"],2.5,"O:S1e","Hb:15","licht","L","Laut Plan sitzt Kabel 56 oben an Sicherung 1, also auf der Zuleitungsseite. Dort ist Sicherung 1 über die Brücke mit Sicherung 2 und Kabel 70 (K Klemme 15) verbunden. Kabel 56 liegt damit vor den Sicherungen."],
+ [57,"",["sw","ws"],1.5,"O:S1a","Gb:49","blink","L+P","Die Sicherungsnummer ist in der Kabelliste am Seitenrand abgeschnitten. Im Plan G168 führt die Leitung 57 eindeutig zur Unterseite von Sicherung 1."],
  [58,"",["br"],1.5,"F:M","GND1:M","masse","L"],
  [60,"",["sw","ge"],1.5,"Pc:3","Z:b","horn","L+P","Klemmennummer an Pc in der Kabelliste abgeschnitten; Klemme 3 nach Plan."],
  [61,"",["sw"],0.75,"F:F6+","F:F2+","instr","L"],
@@ -428,8 +430,8 @@ const WIRES_RAW = [
  [66,"",["ws","sw"],2.5,"K:56","Hb:56","licht","L+P","Die Kabelliste nennt am Hb keine Klemme; im Plan endet Kabel 66 an Klemme 56."],
  [67,"",["bl"],1.5,"Ub:Ub","F:F7","instr","L"],
  [68,"",["br"],1.5,"Al:58","GND3:M","masse","L"],
- [70,"",["sw"],2.5,"O:S2","K:15","start","L"],
- [71,"",["sw","ge"],1.5,"O:S2","Pc:3","horn","L"],
+ [70,"",["sw"],2.5,"O:S2e","K:15","start","L","Speist laut Plan oben Sicherung 2 und über die Brücke auch Sicherung 1 (Klemme 15)."],
+ [71,"",["sw","ge"],1.5,"O:S2a","Pc:3","horn","L"],
  [72,"",["br"],1.5,"Ar:58","GND4:M","masse","L"],
  [73,"",["rt"],1.5,"F:F7+","F:F6+","instr","L"],
  [74,"",["br"],0.75,"Hb:31b","Ha:31b","licht","L"],
@@ -439,7 +441,7 @@ const WIRES_RAW = [
  [78,"",["rt","gn"],1.5,"N:DF","M:DF","start","L"],
  [79,"",["rt"],4,"N:D+","M:D+/61","start","L"],
  [80,"",["mb"],null,"D:-","GND2:M","masse","L"],
- [81,"",["sw"],1.5,"O:S2","Sa:Sa","brems","L"],
+ [81,"",["sw"],1.5,"O:S2a","Sa:Sa","brems","L"],
  [83,"",["br"],1.5,"E:M","GND5:M","masse","L"],
  [84,"**",["sw","rt"],1.5,"Pc:3a","Ls:a","brems","L"],
  [85,"**",["sw","rt"],1.5,"Ls:b","Pc:2a","brems","L"],
@@ -451,7 +453,7 @@ const WIRES_RAW = [
  [91,"**",["gn","sw"],1.5,"Hc:87Hr","Pa:5","blink","L"],
  [92,"**",["gr","gn"],1.5,"Hc:87Hl","Pa:6","blink","L","In der Kabelliste steht hier „Schaltrelais Hc“; gemeint ist das Umschaltrelais Hc."],
  [93,"**",["sw","ws","gn"],1.5,"Hc:54","Gb:49a","blink","L","In der Kabelliste steht hier „Schaltrelais Hc“; gemeint ist das Umschaltrelais Hc."],
- [94,"**",["sw","rt"],1.5,"O:S2","Pc:3a","brems","L"]
+ [94,"**",["sw","rt"],1.5,"O:S2a","Pc:3a","brems","L"]
 ];
 /* Kabel ohne eigene Leitung im Plan: intern bzw. Masse über Gehäuse */
 const INTERNAL = [
@@ -470,7 +472,7 @@ function termOf(ref){const [c,t]=ref.split(":");const comp=compById[c];return {c
 function termLabel(ref){const {comp,term}=termOf(ref);let s=comp.code===""?comp.name:comp.id;const lbl=term[1];
   if(term[0]==="M")return s+(comp.code===""?"":" Masse");
   if(lbl&&lbl!=="?")s+=" Kl. "+lbl;else if(lbl==="?")s+=" Sich. ?";
-  if(comp.id==="O"&&lbl&&lbl!=="?")s="O Sich. "+lbl;
+  if(comp.id==="O"&&lbl&&lbl!=="?")s="O Sich. "+lbl+(term[0].endsWith("e")?" oben":" unten");
   if(term[0]==="58o")s+=" (oben)";if(term[0]==="58u")s+=" (unten)";return s}
 let variant = "*";
 function termVis(t){return visibleVar(t[5]||"")}
@@ -580,7 +582,12 @@ function drawComp(c,layer){
       txt(g,cx,cy+4,"Kombi","c-name","middle"); break; }
     case "gnd": gndSym(g,x+10,y); break;
     case "fuse": el("rect",{x,y,width:w,height:h,class:"c-body"},g);
-      for(let i=0;i<8;i++){const fx=x+20+i*30;el("rect",{x:fx-7,y:y+12,width:14,height:h-24,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle")} break;
+      for(let i=0;i<8;i++){const fx=x+20+i*30;el("rect",{x:fx-7,y:y+14,width:14,height:h-28,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle");
+        el("path",{d:`M${fx} ${y}v14M${fx} ${y+h-14}v14`,class:"c-thin"},g)}
+      for(const br of c.bridges||[]){const x1=x+20+(br[0]-1)*30, x2=x+20+(br[br.length-1]-1)*30;
+        el("rect",{x:x1-5,y:y+4,width:x2-x1+10,height:6,rx:3,class:"c-bridge"},g);
+        }
+      break;
     case "key": el("rect",{x,y,width:w,height:h,class:"c-body"},g); el("circle",{cx:x+w/2,cy:y+h/2-4,r:14,class:"c-thin"},g); el("path",{d:`M${x+w/2} ${y+h/2-12}v16`,class:"c-thin"},g); break;
     case "conn": el("rect",{x,y,width:w,height:h,class:"c-body"},g); break;
     case "lamp": el("rect",{x,y,width:w,height:h,rx:h/2,class:"c-body"},g); el("rect",{x:x+8,y:y+8,width:w-16,height:h-16,rx:(h-16)/2,class:"c-thin"},g); break;
@@ -618,6 +625,7 @@ function drawComp(c,layer){
     else if(side==="tb"){ if(c.shape!=="fuse")txt(g,off,y+h/2+3,lbl,"t-lbl","middle"); }
     else if(side==="l")txt(g,x+4,off+3,lbl,"t-lbl","start");
     else if(side==="r")txt(g,x+w-4,off+3,lbl,"t-lbl","end");
+    else if(c.shape==="fuse"){}
     else if(side==="t")txt(g,off,y+12,lbl,"t-lbl","middle");
     else if(side==="b")txt(g,off,y+h-5,lbl,"t-lbl","middle");
   }
@@ -695,14 +703,18 @@ function focusOn(bbox){const r=svg.getBoundingClientRect();const pad=60;const bw
   if(view.w<=bw||view.h<=bh||bbox.x<view.x||bbox.y<view.y||bbox.x+bbox.w>view.x+view.w||bbox.y+bbox.h>view.y+view.h){view.w=r.width*s;view.h=r.height*s;view.x=bbox.x+bbox.w/2-view.w/2;view.y=bbox.y+bbox.h/2-view.h/2;setVB()}}
 
 /* ============ Stromkreis-Verfolgung ============ */
-function nodeKey(ref){const {c,t}=termOf(ref);const comp=compById[c];if(comp.bridge)return c+":*";return ref}
-function traceNet(startKeys){
+function fuseGroup(n){const br=compById.O.bridges.find(b=>b.includes(n));return br?br.join(""):String(n)}
+function nodeKey(ref,opt={}){const {c,t}=termOf(ref);const comp=compById[c];if(comp.bridge)return c+":*";
+  if(c==="O"){if(opt.raw)return ref;return "O:G"+fuseGroup(+t.slice(1,-1))}
+  return ref}
+function traceNet(startKeys,opt={}){
   const vis=WIRES.filter(w=>visibleVar(w.v));
-  const adj={}; for(const w of vis){for(const r of [w.a,w.b]){const k=nodeKey(r);(adj[k]=adj[k]||[]).push(w)}}
+  const adj={}; for(const w of vis){for(const r of [w.a,w.b]){const k=nodeKey(r,opt);(adj[k]=adj[k]||[]).push(w)}}
   const seenW=new Set(), seenN=new Set(), q=[];
   for(const k of startKeys)q.push(k);
   while(q.length){const k=q.shift();if(seenN.has(k))continue;seenN.add(k);if(k.startsWith("GND"))continue;
-    for(const w of adj[k]||[]){if(seenW.has(w.key))continue;seenW.add(w.key);for(const r of [w.a,w.b]){const nk=nodeKey(r);if(!seenN.has(nk))q.push(nk)}}}
+    if(opt.raw&&k.startsWith("O:")&&!startKeys.includes(k))continue;
+    for(const w of adj[k]||[]){if(seenW.has(w.key))continue;seenW.add(w.key);for(const r of [w.a,w.b]){const nk=nodeKey(r,opt);if(!seenN.has(nk))q.push(nk)}}}
   return {wires:[...seenW],nodes:[...seenN]};
 }
 
@@ -823,13 +835,20 @@ document.getElementById("bgrid").addEventListener("click",e=>{const b=e.target.c
 
 /* ============ Sicherungen ============ */
 function renderFuses(){
-  const rows=[];
-  for(let i=1;i<=8;i++){const ref="O:S"+i;const ws=WIRES.filter(w=>visibleVar(w.v)&&(w.a===ref||w.b===ref));
-    const net=traceNet([ref]); const ends=[...new Set(net.wires.flatMap(k=>{const w=wireByKey[k];return [termOf(w.a).c,termOf(w.b).c]}))].filter(c=>!["O","Pa","Pb","Pc","Pe","Fa","Fb","Fc","Fd","La","Lb","J"].includes(c)&&!c.startsWith("GND"));
-    rows.push(`<tr data-f="${i}"><td>${i}</td><td>${ws.length?ws.map(w=>`${swatch(w.col)} <b class="mono">${w.n}${w.v}</b>`).join("<br>"):"–"}</td><td>${ws.length?ends.map(c=>`${c} <small>(${esc(compById[c].name)})</small>`).join("<br>"):"<small>In der vorliegenden Kabelliste keinem Kabel zugeordnet.</small>"}</td></tr>`)}
+  const rows=[], skip=["O","Pa","Pb","Pc","Pe","Fa","Fb","Fc","Fd","La","Lb"];
+  const wl=ref=>WIRES.filter(w=>visibleVar(w.v)&&(w.a===ref||w.b===ref));
+  const chip=w=>`${swatch(w.col)} <b class="mono">${w.n}${w.v}</b> <small>→ ${esc(termLabel(w.a.startsWith("O:")?w.b:w.a))}</small>`;
+  for(let i=1;i<=8;i++){
+    const top=wl("O:S"+i+"e"), bot=wl("O:S"+i+"a"), br=compById.O.bridges.find(b=>b.includes(i));
+    const net=traceNet(["O:S"+i+"a"],{raw:true});
+    const ends=[...new Set(net.wires.flatMap(k=>{const w=wireByKey[k];return [termOf(w.a).c,termOf(w.b).c]}))].filter(c=>!skip.includes(c)&&!c.startsWith("GND"));
+    let feed=top.map(chip).join("<br>");
+    if(br){const others=br.filter(n=>n!==i);const src=br.flatMap(n=>wl("O:S"+n+"e")).filter(w=>!top.includes(w));
+      feed+=(feed?"<br>":"")+`<small>Brücke mit Sicherung ${others.join(", ")}${src.length?` (dort oben: Kabel ${src.map(w=>w.n+w.v).join(", ")})`:""}</small>`}
+    rows.push(`<tr data-f="${i}"><td>${i}</td><td>${feed||"–"}</td><td>${bot.length?bot.map(chip).join("<br>"):"–"}</td><td>${ends.length?ends.map(c=>`${c} <small>(${esc(compById[c].name)})</small>`).join("<br>"):"–"}</td></tr>`)}
   document.getElementById("ftb").innerHTML=rows.join("");
 }
-document.getElementById("ftb").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;const f=tr.dataset.f;const r=traceNet(["O:S"+f]);
+document.getElementById("ftb").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;const f=tr.dataset.f;const r=traceNet(["O:S"+f+"a"],{raw:true});
   location.hash="plan";setTimeout(()=>select({type:"net",wires:r.wires,title:`hinter Sicherung ${f}`},{focus:true}),30)});
 
 /* ============ Datenlage ============ */
@@ -853,6 +872,7 @@ function renderHints(){
    <li>Kabel 50 und 51: Die Klemme am La fehlt in der Kabelliste. Nach Plan: 50 an Klemme 1, 51 an Klemme 2.</li>
    <li>Kabel 60: Die Klemme an Pc fehlt in der Kabelliste. Nach Plan: Klemme 3, wo auch Kabel 71 von Sicherung 2 ankommt.</li>
    <li>Kabel 66: Nach Plan an Hb Klemme 56.</li>
+   <li>Sicherungskasten O: Die Kabelliste nennt nur die Sicherungsnummer. Im Plan sind die Oberseiten der Sicherungen 1 und 2 sowie 3, 4, 5 und 6 durch Brücken verbunden; 7 und 8 sind einzeln. Gespeist werden die Brücken oben über Kabel 70 (K Klemme 15) an Sicherung 2 und Kabel 13 (K Klemme 58) an Sicherung 6, die Sicherungen 7 und 8 oben über Kabel 5 und 1 vom Schrittschaltrelais Hb. Alle übrigen Kabel gehen unten ab. Ausnahme: Kabel 56 sitzt oben an Sicherung 1.</li>
    <li>Steckdose R: Die Kabelliste schreibt bei Kabel 35, 36 und 40 nur „Klemme 58“. Der Plan zeigt zwei 58-Anschlüsse; Kabel 40 liegt oben, 35 und 36 unten.</li>
   </ul>
   <h2>Kleine Abweichungen</h2>
