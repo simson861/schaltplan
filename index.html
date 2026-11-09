@@ -124,6 +124,8 @@ svg.focus .c-labels text.hi{opacity:1}
 .wire.hi .w-case{stroke:var(--sel)}
 .comp.hi .c-body{stroke:var(--sel);stroke-width:2.4}
 .bg-grid{stroke:var(--grid);stroke-width:1}
+.j-dot{fill:var(--ink);stroke:var(--paper);stroke-width:1;pointer-events:none}
+svg.focus .j-dot:not(.hi){opacity:.09}
 
 /* Tabellen */
 .tablewrap{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:6px}
@@ -296,63 +298,64 @@ const COMPS = [
  {id:"Al",name:"Einbauscheinwerfer, links",shape:"head",x:40,y:20,w:120,h:40,terms:[["56a","56a","b",70],["58","58","b",100],["56b","56b","b",130]]},
   {id:"GND3",name:"Masse",shape:"gnd",x:90,y:80,w:20,h:20,code:"",terms:[["M","","t",100]]},
  {id:"GND4",name:"Masse",shape:"gnd",x:290,y:80,w:20,h:20,code:"",terms:[["M","","t",300]]},
- {id:"Ls",name:"Bremslichtzugschalter",shape:"switch2",x:140,y:80,w:100,h:40,var:"**",terms:[["a","","r",90,"Anschluss für Kabel 84"],["b","","r",110,"Anschluss für Kabel 85"]]},
+ {id:"Ls",name:"Bremslichtzugschalter",shape:"switch2",x:150,y:150,w:100,h:40,var:"**",terms:[["a","","t",180,"Anschluss für Kabel 84"],["b","","t",220,"Anschluss für Kabel 85"]]},
  {id:"Ar",name:"Einbauscheinwerfer, rechts",shape:"head",x:240,y:20,w:120,h:40,terms:[["56a","56a","b",270],["58","58","b",300],["56b","56b","b",330]]},
   {id:"Z",name:"Horn",shape:"horn",x:280,y:130,w:80,h:50,terms:[["b","","r",150,"Anschluss für Kabel 60"],["a","","r",170,"Anschluss für Kabel 24"]]},
  /* ---- links Mitte: Starten & Laden ---- */
  {id:"D",name:"Batterie",shape:"bat",x:20,y:240,w:100,h:80,terms:[["+","+","r",280],["-","−","b",70]]},
- {id:"GND2",name:"Masse",shape:"gnd",x:60,y:360,w:20,h:20,code:"",terms:[["M","","t",70]]},
+ {id:"GND2",name:"Masse",shape:"gnd",x:60,y:420,w:20,h:20,code:"",terms:[["M","","t",70]]},
  {id:"Lm",name:"Anlasser",shape:"starter",x:160,y:230,w:120,h:120,terms:[["30","30","lr",280],["50a","50a","r",300]],gnd:true},
- {id:"N",name:"Lichtmaschine",shape:"box",x:60,y:420,w:120,h:90,terms:[["DF","DF","r",440],["D-","D−","r",460],["D+","D+","r",490]]},
- {id:"M",name:"Spannungsregler",shape:"box",x:290,y:420,w:90,h:100,terms:[["DF","DF","l",440],["D-","D−","l",460],["D+/61","D+/61","lr",490],["B+","B+","t",330]]},
+ {id:"N",name:"Lichtmaschine",shape:"box",x:60,y:480,w:120,h:90,terms:[["DF","DF","r",500],["D-","D−","r",520],["D+","D+","r",550]]},
+ {id:"M",name:"Spannungsregler",shape:"box",x:290,y:480,w:90,h:100,terms:[["DF","DF","l",500],["D-","D−","l",520],["D+/61","D+/61","lr",550],["B+","B+","t",330]]},
  /* ---- links unten: Geber, Glühkerzen ---- */
- {id:"X",name:"Glühkerzen",shape:"glow",x:20,y:580,w:110,h:40,terms:[["X","","t",70]],gnd:true},
- {id:"Ub",name:"Öldruckschalter, Wandlergetriebe",shape:"switch",x:150,y:580,w:40,h:50,terms:[["Ub","","t",170]],gnd:true},
- {id:"Ta",name:"Fernthermometer, Geber",shape:"sensor",x:210,y:580,w:40,h:50,terms:[["Ta","","t",230]],gnd:true},
- {id:"Ua",name:"Öldruckschalter, Motor",shape:"switch",x:270,y:580,w:40,h:50,terms:[["Ua","","t",290]],gnd:true},
- {id:"V",name:"Elektr. Kraftstoffanzeiger (Geber)",shape:"sensor",x:330,y:580,w:60,h:50,terms:[["V","","t",360]],gnd:true},
+ {id:"X",name:"Glühkerzen",shape:"glow",x:20,y:640,w:110,h:40,terms:[["X","","t",70]],gnd:true},
+ {id:"Ub",name:"Öldruckschalter, Wandlergetriebe",shape:"switch",x:150,y:640,w:40,h:50,terms:[["Ub","","t",170]],gnd:true},
+ {id:"Ta",name:"Fernthermometer, Geber",shape:"sensor",x:210,y:640,w:40,h:50,terms:[["Ta","","t",230]],gnd:true},
+ {id:"Ua",name:"Öldruckschalter, Motor",shape:"switch",x:270,y:640,w:40,h:50,terms:[["Ua","","t",290]],gnd:true},
+ {id:"V",name:"Elektr. Kraftstoffanzeiger (Geber)",shape:"sensor",x:330,y:640,w:60,h:50,terms:[["V","","t",360]],gnd:true},
  /* ---- Mitte: Steckverbindungen (links Kabelbaum, rechts Armaturenbrett) ---- */
   {id:"Pc",name:"Steckverbindung",shape:"conn",x:460,y:100,w:40,h:120,terms:[["4","4","lr",110],["3a","3a","lr",130,"","**"],["3","3","lr",150],["2a","2a","lr",170,"","**"],["2","2","lr",190],["1","1","lr",210]]},
  {id:"Pe",name:"Steckverbindung",shape:"conn",x:460,y:250,w:40,h:40,terms:[["2","2","lr",260],["1","1","lr",280]]},
- {id:"Pb",name:"Steckverbindung",shape:"conn",x:460,y:420,w:40,h:130,terms:[["6","6","lr",430],["5","5","lr",450],["4","4","lr",470],["3","3","lr",490],["2","2","lr",510],["1","1","lr",530]]},
- {id:"Pa",name:"Steckverbindung",shape:"conn",x:460,y:760,w:40,h:130,terms:[["6","6","lr",770],["5","5","lr",790],["4","4","lr",810],["3","3","lr",830],["2","2","lr",850],["1","1","lr",870]]},
+ {id:"Pb",name:"Steckverbindung",shape:"conn",x:460,y:480,w:40,h:130,terms:[["6","6","lr",490],["5","5","lr",510],["4","4","lr",530],["3","3","lr",550],["2","2","lr",570],["1","1","lr",590]]},
+ {id:"Pa",name:"Steckverbindung",shape:"conn",x:460,y:820,w:40,h:130,terms:[["6","6","lr",830],["5","5","lr",850],["4","4","lr",870],["3","3","lr",890],["2","2","lr",910],["1","1","lr",930]]},
  /* ---- rechts: Armaturenbrett ---- */
-  {id:"E",name:"Traktormeter",shape:"gauge",x:600,y:30,w:140,h:140,terms:[["Bel","Bel.","l",100,"Beleuchtung"],["M","","r",100,"Masse"]]},
+  {id:"E",name:"Traktormeter",shape:"gauge",x:600,y:20,w:140,h:140,terms:[["Bel","Bel.","l",90,"Beleuchtung"],["M","","r",90,"Masse"]]},
  {id:"GND5",name:"Masse",shape:"gnd",x:760,y:130,w:20,h:20,code:"",terms:[["M","","t",770]]},
- {id:"K",name:"Schaltkasten",shape:"box",x:800,y:40,w:120,h:80,terms:[["30","30","l",70],["56","56","t",860,"Kabel 66 im Plan"],["58","58","b",830],["15","15","b",890]]},
- {id:"Hb",name:"Schrittschaltrelais",shape:"box",x:940,y:40,w:150,h:70,terms:[["56a","56a","b",960],["56b","56b","b",980],["15","15","b",1010],["31b","31b","b",1040],["56","56","b",1070]]},
- {id:"O",name:"Sicherungskasten",shape:"fuse",extra:"Laut Plan sind im Kasten die Oberseiten der Sicherungen 1–2 und 3–6 gebrückt (rote Balken). Oben kommt die Zuleitung an, unten gehen die abgesicherten Kabel ab.",x:600,y:200,w:250,h:70,terms:[
-   ["S1e","1","t",620,"Sicherung 1 oben (Zuleitung)"],["S1a","1","b",620,"Sicherung 1 unten (Abgang)"],["S2e","2","t",650,"Sicherung 2 oben (Zuleitung)"],["S2a","2","b",650,"Sicherung 2 unten (Abgang)"],["S3e","3","t",680,"Sicherung 3 oben (Zuleitung)"],["S3a","3","b",680,"Sicherung 3 unten (Abgang)"],["S4e","4","t",710,"Sicherung 4 oben (Zuleitung)"],["S4a","4","b",710,"Sicherung 4 unten (Abgang)"],["S5e","5","t",740,"Sicherung 5 oben (Zuleitung)"],["S5a","5","b",740,"Sicherung 5 unten (Abgang)"],["S6e","6","t",770,"Sicherung 6 oben (Zuleitung)"],["S6a","6","b",770,"Sicherung 6 unten (Abgang)"],["S7e","7","t",800,"Sicherung 7 oben (Zuleitung)"],["S7a","7","b",800,"Sicherung 7 unten (Abgang)"],["S8e","8","t",830,"Sicherung 8 oben (Zuleitung)"],["S8a","8","b",830,"Sicherung 8 unten (Abgang)"]],
+ {id:"K",name:"Schaltkasten",shape:"box",x:800,y:20,w:120,h:80,terms:[["30","30","l",50],["56","56","t",860,"Kabel 66 im Plan"],["58","58","b",830],["15","15","b",890]]},
+ {id:"Hb",name:"Schrittschaltrelais",shape:"box",x:960,y:20,w:150,h:70,terms:[["56a","56a","b",980],["56b","56b","b",1000],["15","15","b",1030],["31b","31b","b",1060],["56","56","b",1090]]},
+ {id:"O",name:"Sicherungskasten",shape:"fuse",extra:"Laut Plan sind im Kasten die Oberseiten der Sicherungen 1–2 und 3–6 gebrückt (rote Balken). Oben kommt die Zuleitung an, unten gehen die abgesicherten Kabel ab.",x:600,y:230,w:330,h:70,pitch:40,terms:[
+   ["S1e","1","t",620,"Sicherung 1 oben (Zuleitung)"],["S1a","1","b",620,"Sicherung 1 unten (Abgang)"],["S2e","2","t",660,"Sicherung 2 oben (Zuleitung)"],["S2a","2","b",660,"Sicherung 2 unten (Abgang)"],["S3e","3","t",700,"Sicherung 3 oben (Zuleitung)"],["S3a","3","b",700,"Sicherung 3 unten (Abgang)"],["S4e","4","t",740,"Sicherung 4 oben (Zuleitung)"],["S4a","4","b",740,"Sicherung 4 unten (Abgang)"],["S5e","5","t",780,"Sicherung 5 oben (Zuleitung)"],["S5a","5","b",780,"Sicherung 5 unten (Abgang)"],["S6e","6","t",820,"Sicherung 6 oben (Zuleitung)"],["S6a","6","b",820,"Sicherung 6 unten (Abgang)"],["S7e","7","t",860,"Sicherung 7 oben (Zuleitung)"],["S7a","7","b",860,"Sicherung 7 unten (Abgang)"],["S8e","8","t",900,"Sicherung 8 oben (Zuleitung)"],["S8a","8","b",900,"Sicherung 8 unten (Abgang)"]],
    bridges:[[1,2],[3,4,5,6]]},
- {id:"F",name:"Kombiinstrument",shape:"kombi",x:700,y:320,w:260,h:280,terms:[
-   ["F3","F3","l",430,"Ladekontrolllampe"],["F6","F6","l",450,"Motortemperaturkontrolle"],["F2","F2","l",470,"Öldruckkontrolllampe Motor"],["F4","F4","l",510,"Kraftstoffkontrolle"],
+ {id:"F",name:"Kombiinstrument",shape:"kombi",x:700,y:380,w:260,h:280,terms:[
+   ["F3","F3","l",490,"Ladekontrolllampe"],["F6","F6","l",510,"Motortemperaturkontrolle"],["F2","F2","l",530,"Öldruckkontrolllampe Motor"],["F4","F4","l",570,"Kraftstoffkontrolle"],
    ["F1","F1","t",740,"Fernlichtkontrolllampe"],["Bel","Bel.","t",780,"Instrumentenbeleuchtung"],
    ["F7+","F7+","t",810,"Öldruckkontrolllampe Wandlergetriebe (+)"],["F6+","F6+","t",840,"Motortemperaturkontrolle (+)"],["F2+","F2+","t",870,"Öldruckkontrolllampe (+)"],["F3+","F3+","t",900,"Ladekontrolllampe (+)"],["F4+","F4+","t",930,"Kraftstoffkontrolle (+)"],
-   ["F7","F7","l",550,"Öldruckkontrolllampe Wandlergetriebe"],["M","Masse","r",560,"Masse"],
+   ["F7","F7","l",610,"Öldruckkontrolllampe Wandlergetriebe"],["M","Masse","r",620,"Masse"],
    ["F5a","F5a","b",800,"Blinkkontrolllampe a"],["F5b","F5b","b",830,"Blinkkontrolllampe b"],["F5c","F5c","b",860,"Blinkkontrolllampe c"]]},
- {id:"GND1",name:"Masse",shape:"gnd",x:990,y:570,w:20,h:20,code:"",terms:[["M","","t",1000]]},
-  {id:"Ga",name:"Glühanlassschalter",shape:"key",x:580,y:490,w:60,h:70,terms:[["17/19","17/19","l",510,"Klemme 17 und 19"],["50a","50a","l",540],["15/54","15/54","t",610]]},
- {id:"Ha",name:"Blinkschalter und Horndruckknopf",shape:"box",x:540,y:680,w:140,h:70,terms:[["L","L","l",700],["R","R","l",720],["31b","31b","t",600],["56d","56d","t",660],["49a","49a","r",720]]},
- {id:"Gb",name:"Blinkgeber",shape:"box",x:740,y:680,w:160,h:70,terms:[["49","49","t",760],["C1","C1","t",800],["C2","C2","t",830],["C3","C3","t",860],["49a","49a","l",720]]},
- {id:"Hc",name:"Umschaltrelais",shape:"box",x:590,y:790,w:140,h:120,var:"**",terms:[["86r","86r","t",620],["86l","86l","t",650],
-   ["87Hl","87H li","l",800,"Klemme 87H links"],["87Hr","87H re","l",820,"Klemme 87H rechts"],["87Vl","87V li","l",840,"Klemme 87V links"],["87Vr","87V re","l",860,"Klemme 87V rechts"],
-   ["54","54","r",810],["BR","BR","r",850,"Bremslicht-Eingang"]]},
+ {id:"GND1",name:"Masse",shape:"gnd",x:990,y:630,w:20,h:20,code:"",terms:[["M","","t",1000]]},
+  {id:"Ga",name:"Glühanlassschalter",shape:"key",x:560,y:630,w:60,h:70,terms:[["17/19","17/19","l",650,"Klemme 17 und 19"],["50a","50a","l",670],["15/54","15/54","t",590]]},
+ {id:"Ha",name:"Blinkschalter und Horndruckknopf",shape:"box",x:540,y:740,w:140,h:70,terms:[["L","L","b",560],["R","R","b",590],["31b","31b","t",600],["56d","56d","t",660],["49a","49a","r",780]]},
+ {id:"Gb",name:"Blinkgeber",shape:"box",x:740,y:740,w:160,h:70,terms:[["49","49","t",760],["C1","C1","t",800],["C2","C2","t",830],["C3","C3","t",860],["49a","49a","l",780]]},
+ {id:"Hc",name:"Umschaltrelais",shape:"box",x:590,y:860,w:140,h:120,var:"**",terms:[["86l","86l","t",620],["86r","86r","t",650],
+   ["87Hl","87H li","l",880,"Klemme 87H links"],["87Hr","87H re","l",900,"Klemme 87H rechts"],["87Vl","87V li","l",920,"Klemme 87V links"],["87Vr","87V re","l",940,"Klemme 87V rechts"],
+   ["54","54","r",890],["BR","BR","r",930,"Bremslicht-Eingang"]]},
  /* ---- unten: Leuchten, Steckdosen ---- */
- {id:"La",name:"Leitungsverteiler",shape:"dist",x:120,y:960,w:40,h:60,terms:[["E","","t",140,"Einspeisung"],["1","1","b",130],["2","2","b",150]],bridge:true},
- {id:"Lb",name:"Leitungsverteiler",shape:"dist",x:190,y:960,w:40,h:60,terms:[["E","","t",210,"Einspeisung"],["1","1","b",200],["2","2","b",220]],bridge:true},
- {id:"Fa",name:"Flachsteckverbindung, links, 2polig",shape:"flat",x:260,y:960,w:40,h:60,terms:[["1","1","b",270],["2","2","b",290]]},
- {id:"Fc",name:"Flachsteckverbindung, links, 1polig",shape:"flat1",x:330,y:960,w:30,h:50,terms:[["Fc","","tb",350]]},
- {id:"Bl",name:"Blink-Begrenzungslampe, links",shape:"lamp",x:20,y:1080,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Begr.","t",110,"Begrenzungslicht"]],gnd:true},
- {id:"R",name:"Steckdose, 7polig",shape:"sock7",x:230,y:1120,w:100,h:100,terms:[["58o","58","t",280,"Klemme 58, im Plan oben"],["L54","L54","l",1170],["R54","R54","r",1170],["58u","58","b",280,"Klemme 58, im Plan unten"]]},
- {id:"Cl",name:"Schluss-Blinkleuchte, links",shape:"lamp",x:20,y:1240,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Schluss","t",110,"Schlusslicht"]],gnd:true},
- {id:"Ch",name:"Kennzeichenleuchte",shape:"box",x:420,y:1250,w:80,h:40,terms:[["Ch","","l",1270]],gnd:true},
- {id:"Sa",name:"Steckdose, 1polig",shape:"sock1",x:480,y:1080,w:40,h:40,terms:[["Sa","","t",500]],gnd:true},
- {id:"Fd",name:"Flachsteckverbindung, rechts, 1polig",shape:"flat1",x:720,y:960,w:30,h:50,var:"**",terms:[["Fd","","tb",730]]},
- {id:"Fb",name:"Flachsteckverbindung, rechts, 2polig",shape:"flat",x:800,y:960,w:50,h:60,terms:[["1","1","tb",820],["2","2","tb",840]]},
- {id:"Br",name:"Blink-Begrenzungslampe, rechts",shape:"lamp",x:960,y:1080,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Begr.","t",1050,"Begrenzungslicht"]],gnd:true},
- {id:"Cr",name:"Schluss-Blinkleuchte, rechts",shape:"lamp",x:960,y:1240,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Schluss","t",1050,"Schlusslicht"]],gnd:true}
+ {id:"La",name:"Leitungsverteiler",shape:"dist",x:120,y:1020,w:40,h:60,terms:[["E","","t",140,"Einspeisung"],["1","1","b",130],["2","2","b",150]],bridge:true},
+ {id:"Lb",name:"Leitungsverteiler",shape:"dist",x:190,y:1020,w:40,h:60,terms:[["E","","t",210,"Einspeisung"],["1","1","b",200],["2","2","b",220]],bridge:true},
+ {id:"Fa",name:"Flachsteckverbindung, links, 2polig",shape:"flat",x:260,y:1020,w:40,h:60,terms:[["1","1","b",270],["2","2","b",290]]},
+ {id:"Fc",name:"Flachsteckverbindung, links",shape:"flat1",x:330,y:1020,w:40,h:50,terms:[["1","1","tb",340,"Pol 1"],["2","2","tb",360,"Pol 2","**"]],
+   extra:"Die Bauteilliste nennt Fc „1polig“. In der Ausführung über 20 km/h ist Fc im Plan G167 zweipolig gezeichnet: Pol 1 mit Kabel 43 und 46 (Anhängerblinker rechts), Pol 2 mit Kabel 88 und 49 (Blinker vorn links). Ohne die Trennung wären beide Blinkerkreise verbunden."},
+ {id:"Bl",name:"Blink-Begrenzungslampe, links",shape:"lamp",x:20,y:1140,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Begr.","t",110,"Begrenzungslicht"]],gnd:true},
+ {id:"R",name:"Steckdose, 7polig",shape:"sock7",x:230,y:1180,w:100,h:100,terms:[["58o","58","t",280,"Klemme 58, im Plan oben"],["L54","L54","l",1230],["R54","R54","r",1230],["58u","58","b",280,"Klemme 58, im Plan unten"]]},
+ {id:"Cl",name:"Schluss-Blinkleuchte, links",shape:"lamp",x:20,y:1300,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Schluss","t",110,"Schlusslicht"]],gnd:true},
+ {id:"Ch",name:"Kennzeichenleuchte",shape:"box",x:420,y:1310,w:80,h:40,terms:[["Ch","","l",1330]],gnd:true},
+ {id:"Sa",name:"Steckdose, 1polig",shape:"sock1",x:480,y:1140,w:40,h:40,terms:[["Sa","","t",500]],gnd:true},
+ {id:"Fd",name:"Flachsteckverbindung, rechts, 1polig",shape:"flat1",x:720,y:1020,w:30,h:50,var:"**",terms:[["Fd","","tb",730]]},
+ {id:"Fb",name:"Flachsteckverbindung, rechts, 2polig",shape:"flat",x:800,y:1020,w:50,h:60,terms:[["1","1","tb",820],["2","2","tb",840]]},
+ {id:"Br",name:"Blink-Begrenzungslampe, rechts",shape:"lamp",x:960,y:1140,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Begr.","t",1050,"Begrenzungslicht"]],gnd:true},
+ {id:"Cr",name:"Schluss-Blinkleuchte, rechts",shape:"lamp",x:960,y:1300,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Schluss","t",1050,"Schlusslicht"]],gnd:true}
 ];
-const W = 1120, H = 1320;
+const W = 1140, H = 1380;
 
 /* Kabel: [Nr, Ausf., Farben, mm², von, nach, Kreis, Quelle, Hinweis] */
 const WIRES_RAW = [
@@ -399,16 +402,16 @@ const WIRES_RAW = [
  [41,"*",["gn","sw"],1.5,"Ha:R","Pa:5","blink","L"],
  [41,"**",["li"],1.5,"Ha:R","Hc:86r","blink","L"],
  [42,"",["gn","sw"],1.5,"Pa:5","Fb:1","blink","L"],
- [43,"",["gn","sw"],1.5,"Pa:5","Fc:Fc","blink","L"],
+ [43,"",["gn","sw"],1.5,"Pa:5","Fc:1","blink","L"],
  [44,"*",["gn","sw"],1.5,"Fb:1","Br:B","blink","L"],
  [44,"**",["sw","gn"],1.5,"Fd:Fd","Br:B","blink","L"],
  [45,"",["gn","sw"],1.5,"Fb:1","Cr:B","blink","L"],
- [46,"",["gn","sw"],1.5,"Fc:Fc","R:R54","blink","L"],
+ [46,"",["gn","sw"],1.5,"Fc:1","R:R54","blink","L"],
  [47,"*",["gr","gn"],1.5,"Ha:L","Pa:6","blink","L"],
  [47,"**",["li","rt"],1.5,"Ha:L","Hc:86l","blink","L"],
  [48,"",["gr","gn"],1.5,"Pa:6","La:E","blink","L"],
  [49,"*",["gr","gn"],1.5,"La:1","Bl:B","blink","L"],
- [49,"**",["sw","ws"],1.5,"Fc:Fc","Bl:B","blink","L"],
+ [49,"**",["sw","ws"],1.5,"Fc:2","Bl:B","blink","L+P","Die Kabelliste nennt keinen Pol an Fc; im Plan G167 liegt Kabel 49 an Pol 2."],
  [50,"",["gr","gn"],1.5,"La:1","Cl:B","blink","L+P","Klemmennummer am La in der Kabelliste abgeschnitten; Klemme 1 nach Plan."],
  [51,"",["gr","gn"],1.5,"La:2","R:L54","blink","L+P","Klemmennummer am La in der Kabelliste abgeschnitten; Klemme 2 nach Plan."],
  [52,"",["gn"],0.75,"Gb:C1","F:F5a","blink","L"],
@@ -447,7 +450,7 @@ const WIRES_RAW = [
  [85,"**",["sw","rt"],1.5,"Ls:b","Pc:2a","brems","L"],
  [86,"**",["sw","rt"],1.5,"Pc:2a","Hc:BR","brems","L"],
  [87,"**",["sw","ws"],1.5,"Hc:87Vl","Pa:4","blink","L"],
- [88,"**",["sw","ws"],1.5,"Pa:4","Fc:Fc","blink","L"],
+ [88,"**",["sw","ws"],1.5,"Pa:4","Fc:2","blink","L+P","Die Kabelliste nennt keinen Pol an Fc; im Plan G167 liegt Kabel 88 an Pol 2."],
  [89,"**",["sw","gn"],1.5,"Hc:87Vr","Pa:3","blink","L"],
  [90,"**",["sw","gn"],1.5,"Pa:3","Fd:Fd","blink","L"],
  [91,"**",["gn","sw"],1.5,"Hc:87Hr","Pa:5","blink","L"],
@@ -471,6 +474,7 @@ function colorName(col){return col.map(c=>COLORS[c][0]).join("-")}
 function termOf(ref){const [c,t]=ref.split(":");const comp=compById[c];return {comp,term:comp.terms.find(x=>x[0]===t),c,t}}
 function termLabel(ref){const {comp,term}=termOf(ref);let s=comp.code===""?comp.name:comp.id;const lbl=term[1];
   if(term[0]==="M")return s+(comp.code===""?"":" Masse");
+  if(comp.id==="Fc"&&variant==="*")return s;
   if(lbl&&lbl!=="?")s+=" Kl. "+lbl;else if(lbl==="?")s+=" Sich. ?";
   if(comp.id==="O"&&lbl&&lbl!=="?")s="O Sich. "+lbl+(term[0].endsWith("e")?" oben":" unten");
   if(term[0]==="58o")s+=" (oben)";if(term[0]==="58u")s+=" (unten)";return s}
@@ -492,25 +496,40 @@ function termPoints(comp,term){
   if(side==="lr"){add("l");add("r")}else if(side==="tb"){add("t");add("b")}else add(side);
   return pts;
 }
+/* Stromkreise (Netze) für das Routing: Klemmen, die durch ein Kabel verbunden sind,
+   gehören zum selben Netz. Sicherungen trennen Netze (oben/unten getrennt). */
+function routeNets(wires){
+  const par={};const f=x=>{while(par[x]!==x){par[x]=par[par[x]];x=par[x]}return x};
+  const key=r=>{const {c}=termOf(r);return compById[c].bridge?c+":*":r};
+  for(const w of wires){const a=key(w.a),b=key(w.b);if(!(a in par))par[a]=a;if(!(b in par))par[b]=b;par[f(a)]=f(b)}
+  const ids={},net={};let n=0;for(const w of wires){const r=f(key(w.a));if(!(r in ids))ids[r]=n++;net[w.key]=ids[r]}
+  return net;
+}
 function route(wires){
-  const N=GW*GH, blocked=new Uint8Array(N), useH=new Float32Array(N), useV=new Float32Array(N), exitPen=new Float32Array(N);
+  const N=GW*GH, blocked=new Uint8Array(N), exitOwner=new Int32Array(N).fill(-1);
+  const occH=new Int32Array(N).fill(-1), occV=new Int32Array(N).fill(-1), corner=new Int32Array(N).fill(-1);
   const idx=(x,y)=>(y/G)*GW+(x/G);
+  const net=routeNets(wires);
+  const termNet={};for(const w of wires){termNet[w.a]=net[w.key];termNet[w.b]=net[w.key]}
   for(const c of COMPS){ if(!visibleVar(c.var||""))continue;
     for(let x=c.x;x<=c.x+c.w;x+=G)for(let y=c.y;y<=c.y+c.h;y+=G)blocked[idx(x,y)]=1;
-    for(const t of c.terms)if(termVis(t))for(const p of termPoints(c,t))exitPen[idx(p.ex,p.ey)]=1;
+    for(const t of c.terms)if(termVis(t))for(const p of termPoints(c,t)){const ref=c.id+":"+t[0];const i=idx(p.ex,p.ey);exitOwner[i]=(ref in termNet)?termNet[ref]:-3}
   }
   const DX=[1,0,-1,0], DY=[0,1,0,-1];
+  const mark=(arr,i,n)=>{arr[i]=arr[i]===-1||arr[i]===n?n:-2};
+  const foreign=(v,n)=>v!==-1&&v!==n;
   const res={};
-  // längere Verbindungen zuerst, damit kurze sich einfügen
-  const order=[...wires].sort((p,q)=>{const d=w=>{const A=termPoints(termOf(w.a).comp,termOf(w.a).term)[0],B=termPoints(termOf(w.b).comp,termOf(w.b).term)[0];return Math.abs(A.x-B.x)+Math.abs(A.y-B.y)};return d(q)-d(p)});
-  for(const w of order){
+  const dist=w=>{const A=termPoints(termOf(w.a).comp,termOf(w.a).term)[0],B=termPoints(termOf(w.b).comp,termOf(w.b).term)[0];return Math.abs(A.x-B.x)+Math.abs(A.y-B.y)};
+  const order=[...wires].sort((p,q)=>dist(q)-dist(p));
+  function solve(w,strict){
+    const n=net[w.key];
     const A=termOf(w.a), B=termOf(w.b);
     const pa=termPoints(A.comp,A.term), pb=termPoints(B.comp,B.term);
     let best=null;
     for(const p of pa)for(const q of pb){const d=Math.abs(p.ex-q.ex)+Math.abs(p.ey-q.ey);if(!best||d<best.d)best={p,q,d}}
     const {p,q}=best;
     const s=idx(p.ex,p.ey), goal=idx(q.ex,q.ey), gx=q.ex/G, gy=q.ey/G;
-    const own=new Set([s,goal]);
+    const BIG=strict?Infinity:60;
     const S=N*4, gcost=new Float64Array(S).fill(Infinity), prev=new Int32Array(S).fill(-1);
     const heap=[]; const push=(f,st)=>{heap.push([f,st]);let i=heap.length-1;while(i>0){const j=(i-1)>>1;if(heap[j][0]<=heap[i][0])break;[heap[i],heap[j]]=[heap[j],heap[i]];i=j}};
     const pop=()=>{const top=heap[0],last=heap.pop();if(heap.length){heap[0]=last;let i=0;for(;;){let l=2*i+1,r=l+1,m=i;if(l<heap.length&&heap[l][0]<heap[m][0])m=l;if(r<heap.length&&heap[r][0]<heap[m][0])m=r;if(m===i)break;[heap[i],heap[m]]=[heap[m],heap[i]];i=m}}return top};
@@ -526,31 +545,80 @@ function route(wires){
         const nx=cx+DX[nd], ny=cy+DY[nd]; if(nx<0||ny<0||nx>=GW||ny>=GH)continue;
         const nc=ny*GW+nx; if(blocked[nc])continue;
         const horiz=nd%2===0;
-        let cost=1+(horiz?useH[nc]*7+useV[nc]*0.6:useV[nc]*7+useH[nc]*0.6);
-        if(nd!==d)cost+=3+(useH[cell]+useV[cell])*4;
-        if(exitPen[nc]&&!own.has(nc))cost+=25;
+        const same=horiz?occH[nc]:occV[nc], cross=horiz?occV[nc]:occH[nc];
+        let cost=1;
+        if(foreign(same,n))cost+=BIG;               // auf fremdem Kabel entlang
+        else if(same===n)cost-=0.6;                  // gleiches Netz bündeln
+        if(foreign(corner[nc],n))cost+=BIG;          // durch fremden Knick
+        if(foreign(cross,n))cost+=1.5;               // Kreuzung
+        if(nd!==d){cost+=4; if(foreign(occH[cell],n)||foreign(occV[cell],n))cost+=BIG}  // Knick auf fremdem Kabel
+        if(exitOwner[nc]!==-1&&nc!==goal&&exitOwner[nc]!==n)cost+=strict?BIG:25;
+        if(!(cost<Infinity))continue;
         const ns=nc*4+nd, ng=g+cost;
-        if(ng<gcost[ns]){gcost[ns]=ng;prev[ns]=st;push(ng+Math.abs(nx-gx)+Math.abs(ny-gy),ns)}
+        if(ng<gcost[ns]){gcost[ns]=ng;prev[ns]=st;push(ng+0.4*(Math.abs(nx-gx)+Math.abs(ny-gy)),ns)}
       }
     }
-    if(found<0){console.warn('Kein Weg für',w.key);res[w.key]=[[p.x,p.y],[p.ex,p.ey],[q.ex,q.ey],[q.x,q.y]];continue}
+    if(found<0)return null;
     const cells=[]; for(let st=found;st!==-1;st=prev[st])cells.push(st>>2); cells.reverse();
-    for(let i=1;i<cells.length;i++){const a=cells[i-1],b=cells[i];const h=Math.abs(a-b)===1;
-      if(!own.has(a)){if(h)useH[a]+=1;else useV[a]+=1}
-      if(!own.has(b)){if(h)useH[b]+=1;else useV[b]+=1}}
-    // Punkte -> Polylinie (nur Ecken)
-    const pts=[[p.x,p.y]]; let last=null;
+    return {cells,p,q,n};
+  }
+  function commit(w,r){
+    const {cells,p,q,n}=r;
+    for(let i=1;i<cells.length;i++){const a=cells[i-1],b=cells[i];const h=Math.abs(a-b)===1;mark(h?occH:occV,a,n);mark(h?occH:occV,b,n)}
     const xy=c=>[(c%GW)*G,((c/GW)|0)*G];
-    for(let i=0;i<cells.length;i++){
-      const cur=xy(cells[i]);
-      if(i===0||i===cells.length-1){pts.push(cur);continue}
-      const pr=xy(cells[i-1]), nx=xy(cells[i+1]);
-      if((pr[0]===cur[0])!==(cur[0]===nx[0]))pts.push(cur);
-    }
+    const pts=[[p.x,p.y]];
+    const full=[[p.x,p.y],...cells.map(xy),[q.x,q.y]];
+    for(let i=1;i<full.length-1;i++){const pr=full[i-1],cur=full[i],nx=full[i+1];
+      if((pr[0]===cur[0])!==(cur[0]===nx[0])){pts.push(cur);mark(corner,idx(cur[0],cur[1]),n)}}
     pts.push([q.x,q.y]);
     res[w.key]=pts;
   }
+  const failed=[];
+  for(const w of order){const r=solve(w,true);if(r)commit(w,r);else failed.push(w)}
+  for(const w of failed){const r=solve(w,false);if(r)commit(w,r);else{console.warn('Kein Weg für',w.key);const A=termOf(w.a),B=termOf(w.b);const p=termPoints(A.comp,A.term)[0],q=termPoints(B.comp,B.term)[0];res[w.key]=[[p.x,p.y],[q.x,q.y]]}}
+  if(failed.length)console.warn('Weich verlegt:',failed.map(w=>w.key).join(','));
+  route.net=net;
   return res;
+}
+
+/* Verbindungspunkte: wo Kabel desselben Netzes auseinanderlaufen */
+function junctions(paths,net){
+  const m=new Map();
+  const add=(x,y,dir,k)=>{const key=x+","+y+","+net[k];let e=m.get(key);if(!e){e={x,y,dirs:new Set(),keys:new Set()};m.set(key,e)}e.dirs.add(dir);e.keys.add(k)};
+  for(const k in paths){const pts=paths[k];
+    for(let i=1;i<pts.length;i++){const [x1,y1]=pts[i-1],[x2,y2]=pts[i];
+      if(y1===y2){const dx=Math.sign(x2-x1);for(let x=x1;x!==x2;x+=dx*G){add(x,y1,dx>0?"E":"W",k);add(x+dx*G,y1,dx>0?"W":"E",k)}}
+      else{const dy=Math.sign(y2-y1);for(let y=y1;y!==y2;y+=dy*G){add(x1,y,dy>0?"S":"N",k);add(x1,y+dy*G,dy>0?"N":"S",k)}}}}
+  return [...m.values()].filter(e=>e.dirs.size>=3&&e.keys.size>=2);
+}
+
+/* Nummernschilder: auf freien, nicht geteilten Abschnitten, ohne Überdeckung */
+function placeLabels(vis,paths){
+  const use=new Map();const uk=(x,y,h)=>x+","+y+","+h;
+  for(const k in paths){const pts=paths[k];for(let i=1;i<pts.length;i++){const [x1,y1]=pts[i-1],[x2,y2]=pts[i];const h=y1===y2?1:0;
+    const n=Math.max(Math.abs(x2-x1),Math.abs(y2-y1))/G;for(let j=0;j<=n;j++){const x=x1+(x2-x1)*j/n,y=y1+(y2-y1)*j/n;const key=uk(Math.round(x),Math.round(y),h);let s=use.get(key);if(!s){s=new Set();use.set(key,s)}s.add(k)}}}
+  const boxes=[], out={};
+  const hit=(b)=>boxes.some(o=>b.x<o.x+o.w+2&&o.x<b.x+b.w+2&&b.y<o.y+o.h+2&&o.y<b.y+b.h+2)||COMPS.some(c=>visibleVar(c.var||"")&&b.x<c.x+c.w&&c.x<b.x+b.w&&b.y<c.y+c.h&&c.y<b.y+b.h);
+  const plen=k=>{const p=paths[k];let L=0;for(let i=1;i<p.length;i++)L+=Math.abs(p[i][0]-p[i-1][0])+Math.abs(p[i][1]-p[i-1][1]);return L};
+  for(const w of [...vis].sort((a,b)=>plen(a.key)-plen(b.key))){
+    const pts=paths[w.key], s=String(w.n)+(w.v||""), bw=8+s.length*5.6, bh=13;
+    const segs=[];for(let i=1;i<pts.length;i++){const [x1,y1]=pts[i-1],[x2,y2]=pts[i];const L=Math.abs(x2-x1)+Math.abs(y2-y1);if(L>=10)segs.push({x1,y1,x2,y2,L,h:y1===y2})}
+    segs.sort((a,b)=>b.L-a.L);
+    let pick=null, fallback=null;
+    for(const sg of segs){
+      const steps=Math.floor(sg.L/G);
+      const fr=[];for(let j=1;j<steps;j++)fr.push(j/steps);if(!fr.length)fr.push(0.5);fr.sort((a,b)=>Math.abs(a-0.5)-Math.abs(b-0.5));
+      for(const t of fr){const x=Math.round(sg.x1+(sg.x2-sg.x1)*t),y=Math.round(sg.y1+(sg.y2-sg.y1)*t);
+        const b={x:x-bw/2,y:y-bh/2,w:bw,h:bh};if(hit(b))continue;
+        const shared=(use.get(uk(x,y,sg.h?1:0))||new Set()).size>1;
+        if(!shared){pick=[x,y,b];break} if(!fallback)fallback=[x,y,b];}
+      if(pick)break;
+    }
+    if(!pick)pick=fallback;
+    if(!pick){const [mx,my]=longestSeg(pts);pick=[mx,my,{x:mx-bw/2,y:my-bh/2,w:bw,h:bh}]}
+    boxes.push(pick[2]);out[w.key]=pick;
+  }
+  return out;
 }
 
 /* ============ Zeichnen ============ */
@@ -582,9 +650,9 @@ function drawComp(c,layer){
       txt(g,cx,cy+4,"Kombi","c-name","middle"); break; }
     case "gnd": gndSym(g,x+10,y); break;
     case "fuse": el("rect",{x,y,width:w,height:h,class:"c-body"},g);
-      for(let i=0;i<8;i++){const fx=x+20+i*30;el("rect",{x:fx-7,y:y+14,width:14,height:h-28,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle");
+      for(let i=0;i<8;i++){const fx=x+20+i*(c.pitch||30);el("rect",{x:fx-7,y:y+14,width:14,height:h-28,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle");
         el("path",{d:`M${fx} ${y}v14M${fx} ${y+h-14}v14`,class:"c-thin"},g)}
-      for(const br of c.bridges||[]){const x1=x+20+(br[0]-1)*30, x2=x+20+(br[br.length-1]-1)*30;
+      for(const br of c.bridges||[]){const x1=x+20+(br[0]-1)*(c.pitch||30), x2=x+20+(br[br.length-1]-1)*(c.pitch||30);
         el("rect",{x:x1-5,y:y+4,width:x2-x1+10,height:6,rx:3,class:"c-bridge"},g);
         }
       break;
@@ -619,7 +687,7 @@ function drawComp(c,layer){
     for(const p of termPoints(c,t)){
       el("circle",{cx:p.x,cy:p.y,r:2.4,class:"t-dot"},g);
     }
-    const lbl=t[1]; if(!lbl)continue;
+    const lbl=t[1]; if(!lbl)continue; if(c.terms.filter(termVis).length<2&&c.shape==="flat1")continue;
     const [,, side, off]=t;
     if(side==="lr")txt(g,x+w/2,off+3,lbl,"t-lbl","middle");
     else if(side==="tb"){ if(c.shape!=="fuse")txt(g,off,y+h/2+3,lbl,"t-lbl","middle"); }
@@ -638,7 +706,7 @@ function polyD(pts){return "M"+pts.map(p=>p[0]+" "+p[1]).join("L")}
 function longestSeg(pts){let b=0,bi=0;for(let i=1;i<pts.length;i++){const l=Math.abs(pts[i][0]-pts[i-1][0])+Math.abs(pts[i][1]-pts[i-1][1]);if(l>b){b=l;bi=i}}const a=pts[bi-1],c=pts[bi];return [(a[0]+c[0])/2,(a[1]+c[1])/2]}
 function strokeW(mm){if(mm==null)return 2.2;if(mm>=6)return 4.6;if(mm>=4)return 4;if(mm>=2.5)return 3.4;if(mm>=1.5)return 2.8;return 2.2}
 
-let paths={}, wireEls={}, compEls={};
+let paths={}, wireEls={}, compEls={}, jdots=[];
 function render(){
   svg.innerHTML="";
   const defs=el("defs",{},svg);
@@ -651,6 +719,9 @@ function render(){
   for(const c of COMPS){const g=drawComp(c,lc);compEls[c.id]=g;if(!visibleVar(c.var||"")){g.classList.add("var-off");labelLayer.querySelectorAll(`[data-c="${c.id}"]`).forEach(e=>e.remove())}}
   const vis=WIRES.filter(w=>visibleVar(w.v));
   paths=route(vis);
+  const LBL=placeLabels(vis,paths);
+  jdots=[];
+  for(const j of junctions(paths,route.net)){const c=el("circle",{cx:j.x,cy:j.y,r:3.6,class:"j-dot"},ll);c.dataset.keys=[...j.keys].join(" ");jdots.push(c)}
   for(const w of vis){
     const pts=paths[w.key]; const d=polyD(pts); const sw=strokeW(w.mm);
     const g=el("g",{class:"wire"+(w.src==="P"?" plan-only":""),"data-w":w.key},lw);
@@ -664,7 +735,7 @@ function render(){
     const t=el("title",{},g); t.textContent=`Kabel ${w.n}${w.v}: ${colorName(w.col)}${w.mm?", "+fmtMM(w.mm)+" mm²":""} – ${termLabel(w.a)} → ${termLabel(w.b)}`;
     g.addEventListener("click",()=>{if(!dragMoved)select({type:"wire",key:w.key})});
     // Nummernschild
-    const [mx,my]=longestSeg(pts); const s=String(w.n)+(w.v?w.v:"");
+    const [mx,my]=LBL[w.key]; const s=String(w.n)+(w.v?w.v:"");
     const lg=el("g",{class:"w-lbl wire","data-w":w.key},ll);
     const bw=8+s.length*5.6;
     el("rect",{x:mx-bw/2,y:my-6.5,width:bw,height:13,rx:3},lg);
@@ -743,6 +814,7 @@ function applySelection(){
   for(const k in wireEls)for(const e of wireEls[k])e.classList.toggle("hi",hiW.has(k));
   for(const k in compEls)compEls[k].classList.toggle("hi",hiC.has(k));
   svg.querySelectorAll(".c-labels text").forEach(t=>t.classList.toggle("hi",hiC.has(t.dataset.c)));
+  for(const d of jdots)d.classList.toggle("hi",d.dataset.keys.split(" ").some(k=>hiW.has(k)));
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function swatch(col){const b=COLORS[col[0]][1];if(col.length===1)return `<span class="swatch" style="background:${b}"></span>`;
@@ -859,7 +931,7 @@ function renderHints(){
   <p>Fotos aus der Betriebsanleitung: die Schaltpläne G168 (bis 20 km/h) und G167 (über 20 km/h), die Bauteilliste und die vollständige Kabelliste Nr. 1 bis 94 (S. 49–51). Jedes Kabel ist mit seiner Quelle gekennzeichnet.</p>
   <ul>
    <li><span class="badge b-ok">Kabelliste</span> ${nL} Einträge wörtlich aus der Kabelliste: Farbe, Querschnitt, beide Enden.</li>
-   <li><span class="badge b-warn">Kabelliste + Plan</span> ${nLP} Einträge, bei denen eine Angabe fehlt und im Plan abgelesen wurde: Auf Seite 50 ist der rechte Rand schon im Druck abgeschnitten (Kabel 50, 51, 57, 60). Bei 35, 36 und 40 nennt die Liste nur „Klemme 58“ ohne oben/unten, bei 66 keine Klemme am Hb.</li>
+   <li><span class="badge b-warn">Kabelliste + Plan</span> ${nLP} Einträge, bei denen eine Angabe fehlt und im Plan abgelesen wurde: Auf Seite 50 ist der rechte Rand schon im Druck abgeschnitten (Kabel 50, 51, 57, 60). Bei 35, 36 und 40 nennt die Liste nur „Klemme 58“ ohne oben/unten, bei 66 keine Klemme am Hb, bei 49** und 88** kein Pol an Fc.</li>
    <li>Kabel 59, 69 und 82 haben keine eigene Linie: 59 und 69 sind interne Verbindungen in den Instrumenten, 82 ist die Masse an den Blinkleuchten (Massezeichen an den Leuchten).</li>
   </ul>
   <p>Die Zeichnung ist eine saubere Neuanordnung, keine Kopie der Linienführung. Welche Klemme mit welcher verbunden ist, entspricht der Kabelliste; der Weg der Linie auf dem Blatt ist frei gewählt.</p>
@@ -877,7 +949,7 @@ function renderHints(){
   </ul>
   <h2>Kleine Abweichungen</h2>
   <ul>
-   <li>Flachsteckverbindung Fc: Die Bauteilliste nennt sie in beiden Ausführungen „1polig“. Im Plan G167 ist sie mit den Klemmen 1 und 2 gezeichnet. Die Kabelliste nennt bei Fc keine Klemme.</li>
+   <li>Flachsteckverbindung Fc: Die Bauteilliste nennt sie in beiden Ausführungen „1polig“. Im Plan G167 (über 20 km/h) ist sie zweipolig gezeichnet: Pol 1 mit Kabel 43 und 46, Pol 2 mit Kabel 88 und 49. Übernommen wurde der Plan, denn sonst wären der Anhängerblinker rechts und der Blinker vorn links miteinander verbunden.</li>
    <li>Kabel 92 und 93: Die Kabelliste schreibt „Schaltrelais Hc“, sonst überall „Umschaltrelais Hc“. Es ist dasselbe Bauteil.</li>
    <li>Die Klemmen 2a und 3a an Pc gibt es nur in der Ausführung über 20 km/h.</li>
   </ul>
