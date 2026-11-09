@@ -102,7 +102,8 @@ ul.plain li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;gap:8
 /* SVG */
 .c-body{fill:var(--comp-fill);stroke:var(--comp-stroke);stroke-width:1.6}
 .c-thin{fill:none;stroke:var(--comp-stroke);stroke-width:1.2}
-.c-code{font:700 17px var(--f-display);fill:var(--ink)}
+.c-code{font:700 17px var(--f-display);fill:var(--ink);paint-order:stroke;stroke:var(--paper);stroke-width:4px;stroke-linejoin:round}
+.c-labels{pointer-events:none}
 .c-name{font:500 9.5px var(--f-body);fill:var(--ink-2)}
 .t-lbl{font:600 8.5px var(--f-mono);fill:var(--ink)}
 .t-dot{fill:var(--comp-stroke)}
@@ -117,6 +118,8 @@ ul.plain li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;gap:8
 .plan-only .w-core{stroke-dasharray:6 4}
 svg.focus .wire:not(.hi){opacity:.09}
 svg.focus .comp:not(.hi){opacity:.28}
+svg.focus .c-labels text{opacity:.35}
+svg.focus .c-labels text.hi{opacity:1}
 .wire.hi .w-case{stroke:var(--sel)}
 .comp.hi .c-body{stroke:var(--sel);stroke-width:2.4}
 .bg-grid{stroke:var(--grid);stroke-width:1}
@@ -286,58 +289,65 @@ const VAR_LABEL = {"":"beide","*":"bis 20 km/h","**":"über 20 km/h"};
 /* Bauteile. Koordinaten im Raster von 10.
    Klemmen: [id, Beschriftung, Seite (l/r/t/b, lr = beidseitig, tb = oben+unten), Lage, Hinweis] */
 const COMPS = [
- {id:"Al",name:"Einbauscheinwerfer, links",shape:"head",x:200,y:20,w:120,h:40,terms:[["56a","56a","b",230],["58","58","b",260],["56b","56b","b",290]]},
- {id:"Ar",name:"Einbauscheinwerfer, rechts",shape:"head",x:790,y:20,w:120,h:40,terms:[["56a","56a","b",820],["58","58","b",850],["56b","56b","b",880]]},
- {id:"J",name:"Abzweig zwischen den Scheinwerfern (Symbol im Plan, ohne Bezeichnung)",shape:"node",x:540,y:30,w:20,h:20,code:"",terms:[["J","","lr",40]]},
- {id:"X",name:"Glühkerzen",shape:"glow",x:190,y:110,w:110,h:40,terms:[["X","","l",130]],gnd:true},
- {id:"Ta",name:"Fernthermometer, Geber",shape:"sensor",x:420,y:110,w:40,h:50,terms:[["Ta","","t",440]],gnd:true},
- {id:"Ua",name:"Öldruckschalter, Motor",shape:"switch",x:500,y:110,w:40,h:50,terms:[["Ua","","t",520]],gnd:true},
- {id:"Z",name:"Horn",shape:"horn",x:580,y:110,w:80,h:40,terms:[["a","","t",600,"Anschluss für Kabel 24"],["b","","t",640,"Anschluss für Kabel 60"]]},
- {id:"Ub",name:"Öldruckschalter, Wandlergetriebe",shape:"switch",x:710,y:110,w:40,h:50,terms:[["Ub","","t",730]],gnd:true},
- {id:"V",name:"Elektr. Kraftstoffanzeiger (Geber)",shape:"sensor",x:800,y:110,w:60,h:50,terms:[["V","","t",830]],gnd:true},
- {id:"N",name:"Lichtmaschine",shape:"box",x:200,y:200,w:120,h:70,terms:[["DF","DF","l",220],["D+","D+","l",240],["D-","D−","l",260]]},
- {id:"Lm",name:"Anlasser",shape:"starter",x:200,y:310,w:120,h:120,terms:[["50a","50a","l",330],["30","30","l",350]],gnd:true},
- {id:"M",name:"Spannungsregler",shape:"box",x:200,y:470,w:110,h:90,terms:[["DF","DF","l",490],["D-","D−","l",510],["D+/61","D+/61","l",530],["B+","B+","t",280]]},
- {id:"E",name:"Traktormeter",shape:"gauge",x:400,y:230,w:180,h:180,terms:[["Bel","Bel.","l",320,"Beleuchtung"],["M","","b",530,"Masse (Kabel 83 im Plan)"]]},
- {id:"F",name:"Kombiinstrument",shape:"kombi",x:640,y:220,w:280,h:260,terms:[
-   ["F1","F1","l",300,"Fernlichtkontrolllampe"],["Bel","Bel.","l",340,"Instrumentenbeleuchtung"],
-   ["F2","F2","t",700,"Öldruckkontrolllampe Motor"],["F3","F3","t",740,"Ladekontrolllampe"],["F4","F4","t",780,"Kraftstoffkontrolle"],["F6","F6","t",820,"Motortemperaturkontrolle"],
-   ["F5a","F5a","r",280,"Blinkkontrolllampe a"],["F5b","F5b","r",300,"Blinkkontrolllampe b"],["F5c","F5c","r",320,"Blinkkontrolllampe c"],["F7","F7","r",370,"Öldruckkontrolllampe Wandlergetriebe"],["M","Masse","r",420,"Masse"],
-   ["F6+","F6+","b",700,"Motortemperaturkontrolle (+)"],["F2+","F2+","b",740,"Öldruckkontrolllampe (+)"],["F3+","F3+","b",780,"Ladekontrolllampe (+)"],["F4+","F4+","b",820,"Kraftstoffkontrolle (+)"]]},
- {id:"GND1",name:"Masse",shape:"gnd",x:990,y:440,w:20,h:20,code:"",terms:[["M","","t",1000]]},
- {id:"O",name:"Sicherungskasten",shape:"fuse",x:400,y:560,w:250,h:70,terms:[
-   ["S1","1","tb",420],["S2","2","tb",450],["S3","3","tb",480],["S4","4","tb",510],["S5","5","tb",540],["S6","6","tb",570],["S7","7","tb",600],["S8","8","tb",630],
-   ["S?","?","r",610,"Sicherungsnummer in der Kabelliste abgeschnitten"]]},
- {id:"Ga",name:"Glühanlassschalter",shape:"key",x:690,y:560,w:60,h:60,terms:[["50a","50a","b",720]]},
- {id:"K",name:"Schaltkasten",shape:"box",x:790,y:550,w:120,h:90,terms:[["30","30","l",580],["56","56","t",850,"Kabel 66 im Plan"],["58","58","b",820],["15","15","b",870]]},
- {id:"Pe",name:"Steckverbindung",shape:"conn",x:340,y:660,w:40,h:40,terms:[["2","2","lr",670],["1","1","lr",690]]},
- {id:"Pc",name:"Steckverbindung",shape:"conn",x:340,y:730,w:40,h:90,terms:[["4","4","lr",740],["3","3","lr",760],["2","2","lr",780],["1","1","lr",800]]},
- {id:"Pb",name:"Steckverbindung",shape:"conn",x:340,y:860,w:40,h:130,terms:[["6","6","lr",870],["5","5","lr",890],["4","4","lr",910],["3","3","lr",930],["2","2","lr",950],["1","1","lr",970]]},
- {id:"Pa",name:"Steckverbindung",shape:"conn",x:340,y:1030,w:40,h:130,terms:[["6","6","lr",1040],["5","5","lr",1060],["4","4","lr",1080],["3","3","lr",1100],["2","2","lr",1120],["1","1","lr",1140]]},
- {id:"Hc",name:"Umschaltrelais",shape:"box",x:60,y:880,w:110,h:90,var:"**",terms:[["86r","86r","r",910],["86l","86l","r",930]],
+ /* ---- links oben: Scheinwerfer, Horn ---- */
+ {id:"Al",name:"Einbauscheinwerfer, links",shape:"head",x:40,y:20,w:120,h:40,terms:[["56a","56a","b",70],["58","58","b",100],["56b","56b","b",130]]},
+ {id:"J",name:"Abzweig zwischen den Scheinwerfern (Symbol im Plan, ohne Bezeichnung)",shape:"node",x:190,y:30,w:20,h:20,code:"",terms:[["J","","lr",40]]},
+ {id:"Ar",name:"Einbauscheinwerfer, rechts",shape:"head",x:240,y:20,w:120,h:40,terms:[["56a","56a","b",270],["58","58","b",300],["56b","56b","b",330]]},
+ {id:"Z",name:"Horn",shape:"horn",x:280,y:120,w:80,h:40,terms:[["b","","r",130,"Anschluss für Kabel 60"],["a","","r",150,"Anschluss für Kabel 24"]]},
+ /* ---- links Mitte: Starten & Laden ---- */
+ {id:"D",name:"Batterie",shape:"bat",x:20,y:240,w:100,h:80,terms:[["+","+","r",280],["-","−","b",70]]},
+ {id:"GND2",name:"Masse",shape:"gnd",x:60,y:360,w:20,h:20,code:"",terms:[["M","","t",70]]},
+ {id:"Lm",name:"Anlasser",shape:"starter",x:160,y:230,w:120,h:120,terms:[["30","30","lr",280],["50a","50a","r",300]],gnd:true},
+ {id:"N",name:"Lichtmaschine",shape:"box",x:60,y:420,w:120,h:90,terms:[["DF","DF","r",440],["D-","D−","r",460],["D+","D+","r",490]]},
+ {id:"M",name:"Spannungsregler",shape:"box",x:290,y:420,w:90,h:100,terms:[["DF","DF","l",440],["D-","D−","l",460],["D+/61","D+/61","lr",490],["B+","B+","t",330]]},
+ /* ---- links unten: Geber, Glühkerzen ---- */
+ {id:"X",name:"Glühkerzen",shape:"glow",x:20,y:580,w:110,h:40,terms:[["X","","t",70]],gnd:true},
+ {id:"Ub",name:"Öldruckschalter, Wandlergetriebe",shape:"switch",x:150,y:580,w:40,h:50,terms:[["Ub","","t",170]],gnd:true},
+ {id:"Ta",name:"Fernthermometer, Geber",shape:"sensor",x:210,y:580,w:40,h:50,terms:[["Ta","","t",230]],gnd:true},
+ {id:"Ua",name:"Öldruckschalter, Motor",shape:"switch",x:270,y:580,w:40,h:50,terms:[["Ua","","t",290]],gnd:true},
+ {id:"V",name:"Elektr. Kraftstoffanzeiger (Geber)",shape:"sensor",x:330,y:580,w:60,h:50,terms:[["V","","t",360]],gnd:true},
+ /* ---- Mitte: Steckverbindungen (links Kabelbaum, rechts Armaturenbrett) ---- */
+ {id:"Pc",name:"Steckverbindung",shape:"conn",x:460,y:100,w:40,h:90,terms:[["4","4","lr",110],["3","3","lr",130],["2","2","lr",150],["1","1","lr",170]]},
+ {id:"Pe",name:"Steckverbindung",shape:"conn",x:460,y:250,w:40,h:40,terms:[["2","2","lr",260],["1","1","lr",280]]},
+ {id:"Pb",name:"Steckverbindung",shape:"conn",x:460,y:420,w:40,h:130,terms:[["6","6","lr",430],["5","5","lr",450],["4","4","lr",470],["3","3","lr",490],["2","2","lr",510],["1","1","lr",530]]},
+ {id:"Pa",name:"Steckverbindung",shape:"conn",x:460,y:760,w:40,h:130,terms:[["6","6","lr",770],["5","5","lr",790],["4","4","lr",810],["3","3","lr",830],["2","2","lr",850],["1","1","lr",870]]},
+ /* ---- rechts: Armaturenbrett ---- */
+ {id:"E",name:"Traktormeter",shape:"gauge",x:600,y:30,w:140,h:140,terms:[["Bel","Bel.","l",100,"Beleuchtung"],["M","","r",100,"Masse (Kabel 83 im Plan)"]]},
+ {id:"K",name:"Schaltkasten",shape:"box",x:800,y:40,w:120,h:80,terms:[["30","30","l",70],["56","56","t",860,"Kabel 66 im Plan"],["58","58","b",830],["15","15","b",890]]},
+ {id:"Hb",name:"Schrittschaltrelais",shape:"box",x:940,y:40,w:150,h:70,terms:[["56a","56a","b",960],["56b","56b","b",980],["15","15","b",1010],["31b","31b","b",1040],["56","56","b",1070]]},
+ {id:"O",name:"Sicherungskasten",shape:"fuse",x:600,y:200,w:250,h:70,terms:[
+   ["S1","1","tb",620],["S2","2","tb",650],["S3","3","tb",680],["S4","4","tb",710],["S5","5","tb",740],["S6","6","tb",770],["S7","7","tb",800],["S8","8","tb",830],
+   ["S?","?","r",250,"Sicherungsnummer in der Kabelliste abgeschnitten"]]},
+ {id:"F",name:"Kombiinstrument",shape:"kombi",x:700,y:320,w:260,h:280,terms:[
+   ["F3","F3","l",430,"Ladekontrolllampe"],["F6","F6","l",450,"Motortemperaturkontrolle"],["F2","F2","l",470,"Öldruckkontrolllampe Motor"],["F4","F4","l",510,"Kraftstoffkontrolle"],
+   ["F1","F1","t",740,"Fernlichtkontrolllampe"],["Bel","Bel.","t",780,"Instrumentenbeleuchtung"],
+   ["F6+","F6+","t",840,"Motortemperaturkontrolle (+)"],["F2+","F2+","t",870,"Öldruckkontrolllampe (+)"],["F3+","F3+","t",900,"Ladekontrolllampe (+)"],["F4+","F4+","t",930,"Kraftstoffkontrolle (+)"],
+   ["F7","F7","r",400,"Öldruckkontrolllampe Wandlergetriebe"],["M","Masse","r",560,"Masse"],
+   ["F5a","F5a","b",800,"Blinkkontrolllampe a"],["F5b","F5b","b",830,"Blinkkontrolllampe b"],["F5c","F5c","b",860,"Blinkkontrolllampe c"]]},
+ {id:"GND1",name:"Masse",shape:"gnd",x:990,y:570,w:20,h:20,code:"",terms:[["M","","t",1000]]},
+ {id:"Ga",name:"Glühanlassschalter",shape:"key",x:580,y:500,w:60,h:60,terms:[["50a","50a","l",530]]},
+ {id:"Ha",name:"Blinkschalter und Horndruckknopf",shape:"box",x:540,y:680,w:140,h:70,terms:[["L","L","l",700],["R","R","l",720],["31b","31b","t",600],["56d","56d","t",660],["49a","49a","r",720]]},
+ {id:"Gb",name:"Blinkgeber",shape:"box",x:740,y:680,w:160,h:70,terms:[["49","49","t",760],["C1","C1","t",800],["C2","C2","t",830],["C3","C3","t",860],["49a","49a","l",720]]},
+ {id:"Hc",name:"Umschaltrelais",shape:"box",x:560,y:800,w:110,h:70,var:"**",terms:[["86r","86r","l",820],["86l","86l","l",840]],
    extra:"Im Plan G167 trägt Hc außerdem die Klemmen 54, BR, 87v und 87h (je zweimal). Deren Kabel stehen auf der fehlenden Seite der Kabelliste."},
- {id:"Ha",name:"Blinkschalter und Horndruckknopf",shape:"box",x:480,y:1060,w:150,h:70,terms:[["L","L","t",500],["R","R","t",530],["31b","31b","t",570],["56d","56d","t",600],["49a","49a","b",500]]},
- {id:"Hb",name:"Schrittschaltrelais",shape:"box",x:680,y:1060,w:150,h:70,terms:[["56a","56a","t",700],["56b","56b","t",720],["15","15","t",750],["31b","31b","t",780],["56","56","t",810]]},
- {id:"Gb",name:"Blinkgeber",shape:"box",x:870,y:1060,w:170,h:70,terms:[["49","49","t",890],["49a","49a","t",920],["C1","C1","t",960],["C2","C2","t",990],["C3","C3","t",1020]]},
- {id:"Bl",name:"Blink-Begrenzungslampe, links",shape:"lamp",x:40,y:1190,w:120,h:50,terms:[["B","Blink","t",70,"Blinker"],["S","Begr.","t",130,"Begrenzungslicht"]],gnd:true},
- {id:"Br",name:"Blink-Begrenzungslampe, rechts",shape:"lamp",x:960,y:1190,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Begr.","t",1050,"Begrenzungslicht"]],gnd:true},
- {id:"La",name:"Leitungsverteiler",shape:"dist",x:200,y:1300,w:40,h:60,terms:[["E","","t",220,"Einspeisung"],["1","1","b",210],["2","2","b",230]],bridge:true},
- {id:"Lb",name:"Leitungsverteiler",shape:"dist",x:260,y:1300,w:40,h:60,terms:[["E","","t",280,"Einspeisung"],["1","1","b",270],["2","2","b",290]],bridge:true},
- {id:"Fa",name:"Flachsteckverbindung, links, 2polig",shape:"flat",x:320,y:1300,w:40,h:60,terms:[["1","1","b",330],["2","2","b",350]]},
- {id:"Fc",name:"Flachsteckverbindung, links, 1polig",shape:"flat1",x:390,y:1300,w:30,h:50,terms:[["Fc","","tb",410]]},
- {id:"D",name:"Batterie",shape:"bat",x:460,y:1290,w:130,h:100,terms:[["+","+","t",490],["-","−","r",1370]]},
- {id:"GND2",name:"Masse",shape:"gnd",x:640,y:1360,w:20,h:20,code:"",terms:[["M","","t",650]]},
- {id:"Sa",name:"Steckdose, 1polig",shape:"sock1",x:690,y:1300,w:40,h:40,terms:[["Sa","","t",710]],gnd:true},
- {id:"Ls",name:"Bremslichtzugschalter",shape:"switch2",x:760,y:1300,w:100,h:40,var:"**",terms:[],
+ /* ---- unten: Leuchten, Steckdosen ---- */
+ {id:"La",name:"Leitungsverteiler",shape:"dist",x:120,y:960,w:40,h:60,terms:[["E","","t",140,"Einspeisung"],["1","1","b",130],["2","2","b",150]],bridge:true},
+ {id:"Lb",name:"Leitungsverteiler",shape:"dist",x:190,y:960,w:40,h:60,terms:[["E","","t",210,"Einspeisung"],["1","1","b",200],["2","2","b",220]],bridge:true},
+ {id:"Fa",name:"Flachsteckverbindung, links, 2polig",shape:"flat",x:260,y:960,w:40,h:60,terms:[["1","1","b",270],["2","2","b",290]]},
+ {id:"Fc",name:"Flachsteckverbindung, links, 1polig",shape:"flat1",x:330,y:960,w:30,h:50,terms:[["Fc","","tb",350]]},
+ {id:"Bl",name:"Blink-Begrenzungslampe, links",shape:"lamp",x:20,y:1080,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Begr.","t",110,"Begrenzungslicht"]],gnd:true},
+ {id:"R",name:"Steckdose, 7polig",shape:"sock7",x:230,y:1120,w:100,h:100,terms:[["58o","58","t",280,"Klemme 58, im Plan oben"],["L54","L54","l",1170],["R54","R54","r",1170],["58u","58","b",280,"Klemme 58, im Plan unten"]]},
+ {id:"Cl",name:"Schluss-Blinkleuchte, links",shape:"lamp",x:20,y:1240,w:120,h:50,terms:[["B","Blink","t",50,"Blinker"],["S","Schluss","t",110,"Schlusslicht"]],gnd:true},
+ {id:"Ch",name:"Kennzeichenleuchte",shape:"box",x:420,y:1250,w:80,h:40,terms:[["Ch","","l",1270]],gnd:true},
+ {id:"Sa",name:"Steckdose, 1polig",shape:"sock1",x:480,y:1080,w:40,h:40,terms:[["Sa","","t",500]],gnd:true},
+ {id:"Ls",name:"Bremslichtzugschalter",shape:"switch2",x:580,y:980,w:100,h:40,var:"**",terms:[],
    extra:"Anschlüsse von Ls stehen auf der fehlenden Seite der Kabelliste."},
- {id:"Fd",name:"Flachsteckverbindung, rechts, 1polig",shape:"flat1",x:900,y:1320,w:30,h:50,var:"**",terms:[["Fd","","tb",920]]},
- {id:"Fb",name:"Flachsteckverbindung, rechts, 2polig",shape:"flat",x:970,y:1320,w:50,h:60,terms:[["1","1","tb",990],["2","2","tb",1010]]},
- {id:"R",name:"Steckdose, 7polig",shape:"sock7",x:430,y:1450,w:100,h:100,terms:[["58o","58","t",480,"Klemme 58, im Plan oben"],["L54","L54","l",1500],["R54","R54","r",1500],["58u","58","b",480,"Klemme 58, im Plan unten"]]},
- {id:"Ch",name:"Kennzeichenleuchte",shape:"box",x:640,y:1520,w:80,h:40,terms:[["Ch","","l",1540]],gnd:true},
- {id:"Cl",name:"Schluss-Blinkleuchte, links",shape:"lamp",x:40,y:1520,w:120,h:50,terms:[["B","Blink","t",70,"Blinker"],["S","Schluss","t",130,"Schlusslicht"]],gnd:true},
- {id:"Cr",name:"Schluss-Blinkleuchte, rechts",shape:"lamp",x:960,y:1520,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Schluss","t",1050,"Schlusslicht"]],gnd:true}
+ {id:"Fd",name:"Flachsteckverbindung, rechts, 1polig",shape:"flat1",x:720,y:960,w:30,h:50,var:"**",terms:[["Fd","","tb",730]]},
+ {id:"Fb",name:"Flachsteckverbindung, rechts, 2polig",shape:"flat",x:800,y:960,w:50,h:60,terms:[["1","1","tb",820],["2","2","tb",840]]},
+ {id:"Br",name:"Blink-Begrenzungslampe, rechts",shape:"lamp",x:960,y:1080,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Begr.","t",1050,"Begrenzungslicht"]],gnd:true},
+ {id:"Cr",name:"Schluss-Blinkleuchte, rechts",shape:"lamp",x:960,y:1240,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Schluss","t",1050,"Schlusslicht"]],gnd:true}
 ];
-const W = 1120, H = 1600;
+const W = 1120, H = 1320;
 
 /* Kabel: [Nr, Ausf., Farben, mm², von, nach, Kreis, Quelle, Hinweis] */
 const WIRES_RAW = [
@@ -523,6 +533,7 @@ function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const
 function txt(parent,x,y,s,cls,anchor){const t=el("text",{x,y,class:cls},parent);if(anchor)t.setAttribute("text-anchor",anchor);t.textContent=s;return t}
 function gndSym(g,x,y){el("path",{d:`M${x} ${y}v6M${x-7} ${y+6}h14M${x-4.5} ${y+9}h9M${x-2} ${y+12}h4`,class:"c-thin"},g)}
 
+let labelLayer=null;
 function drawComp(c,layer){
   const g=el("g",{class:"comp","data-c":c.id},layer);
   const {x,y,w,h}=c;
@@ -545,7 +556,7 @@ function drawComp(c,layer){
       txt(g,cx,cy+4,"Kombi","c-name","middle"); break; }
     case "gnd": gndSym(g,x+10,y); break;
     case "fuse": el("rect",{x,y,width:w,height:h,class:"c-body"},g);
-      for(let i=0;i<8;i++){const fx=420+i*30;el("rect",{x:fx-7,y:y+12,width:14,height:h-24,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle")} break;
+      for(let i=0;i<8;i++){const fx=x+20+i*30;el("rect",{x:fx-7,y:y+12,width:14,height:h-24,rx:6,class:"c-thin"},g);txt(g,fx,y+h/2+4,String(i+1),"t-lbl","middle")} break;
     case "key": el("rect",{x,y,width:w,height:h,class:"c-body"},g); el("circle",{cx:x+w/2,cy:y+h/2-4,r:14,class:"c-thin"},g); el("path",{d:`M${x+w/2} ${y+h/2-12}v16`,class:"c-thin"},g); break;
     case "conn": el("rect",{x,y,width:w,height:h,class:"c-body"},g); break;
     case "lamp": el("rect",{x,y,width:w,height:h,rx:h/2,class:"c-body"},g); el("rect",{x:x+8,y:y+8,width:w-16,height:h-16,rx:(h-16)/2,class:"c-thin"},g); break;
@@ -563,13 +574,14 @@ function drawComp(c,layer){
   // Bezeichnung
   if(code){
     let lx=x, ly=y-5, anchor="start";
-    if(["conn"].includes(c.shape)){lx=x-6;ly=y+12;anchor="end"}
-    if(["sensor","switch","sock1","flat1"].includes(c.shape)){lx=x+w+4;ly=y+14}
-    if(c.shape==="gauge"||c.shape==="sock7"){lx=x+w-10;ly=y+12}
+    if(["conn"].includes(c.shape)){lx=x+w/2;ly=y-6;anchor="middle"}
+    if(["sock1","flat1"].includes(c.shape)){lx=x+w+4;ly=y+14}
+    if(["sensor","switch"].includes(c.shape)){lx=x;ly=y+h+28}
+    if(c.shape==="gauge"||c.shape==="sock7"){lx=x+w-6;ly=y+10}
     if(c.id==="Fd"||c.id==="Fc"){lx=x+w/2;ly=y-5;anchor="middle"}
     if(c.id==="Fb"){lx=x+w+4;ly=y+30}
-    if(c.id==="Lm"){lx=x+w+4;ly=y+110}
-    txt(g,lx,ly,code,"c-code",anchor);
+    if(c.id==="Lm"){lx=x+w-34;ly=y+118}
+    const lt=txt(labelLayer||g,lx,ly,code,"c-code",anchor);lt.dataset.c=c.id;
   }
   // Klemmen
   for(const t of c.terms){
@@ -602,8 +614,9 @@ function render(){
   el("path",{d:"M20 0H0V20",fill:"none",class:"bg-grid"},pat);
   el("rect",{x:-2000,y:-2000,width:W+4000,height:H+4000,fill:"url(#grid)"},svg);
   const lc=el("g",{},svg), lw=el("g",{},svg), ll=el("g",{},svg);
+  labelLayer=el("g",{class:"c-labels"},svg);
   compEls={}; wireEls={};
-  for(const c of COMPS){const g=drawComp(c,lc);compEls[c.id]=g;if(!visibleVar(c.var||""))g.classList.add("var-off")}
+  for(const c of COMPS){const g=drawComp(c,lc);compEls[c.id]=g;if(!visibleVar(c.var||"")){g.classList.add("var-off");labelLayer.querySelectorAll(`[data-c="${c.id}"]`).forEach(e=>e.remove())}}
   const vis=WIRES.filter(w=>visibleVar(w.v));
   paths=route(vis);
   for(const w of vis){
@@ -693,6 +706,7 @@ function applySelection(){
   const on=!!sel; svg.classList.toggle("focus",on);
   for(const k in wireEls)for(const e of wireEls[k])e.classList.toggle("hi",hiW.has(k));
   for(const k in compEls)compEls[k].classList.toggle("hi",hiC.has(k));
+  svg.querySelectorAll(".c-labels text").forEach(t=>t.classList.toggle("hi",hiC.has(t.dataset.c)));
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function swatch(col){const b=COLORS[col[0]][1];if(col.length===1)return `<span class="swatch" style="background:${b}"></span>`;
