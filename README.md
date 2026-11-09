@@ -4,6 +4,7 @@ Farbige, klickbare Nachzeichnung des Schaltplans aus der Betriebsanleitung (Stan
 Plan **G168** (Schlepper bis 20 km/h, `*`) und **G167** (über 20 km/h, `**`), Bauteil- und Kabelliste S. 49–51 (Kabel 1–94).
 
 - Kabel in echter Aderfarbe, Strichstärke nach Querschnitt
+- Zwei Anordnungen: „Übersichtlich“ (nach Funktionsgruppen) und „Wie Original“ (Lage der Bauteile wie in G168/G167)
 - Klick auf Kabel oder Bauteil zeigt Farbe, mm², beide Enden und Quelle
 - „Stromkreis verfolgen“ markiert alles, was elektrisch zusammenhängt
 - Kabelliste, Bauteilliste, Sicherungsbelegung, Originalfotos

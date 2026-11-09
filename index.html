@@ -71,6 +71,9 @@ main{padding-block:14px 32px}
 .stage svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none}
 .stage svg.dragging{cursor:grabbing}
 .tools{display:flex;flex-wrap:wrap;gap:6px}
+.planbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.planbar-l{font:600 12px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2)}
+.seg-sm button{padding:5px 12px;font-size:13px}
 .chip{border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 10px 4px 8px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .chip i{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 0 1px var(--casing)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -231,6 +234,7 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
   <section class="view" id="v-plan">
     <div class="planwrap">
       <div class="planmain">
+      <div class="planbar"><span class="planbar-l">Anordnung</span><div class="seg seg-sm" role="group" aria-label="Anordnung des Plans"><button id="lay-f" aria-pressed="true">Übersichtlich</button><button id="lay-o" aria-pressed="false">Wie Original</button></div></div>
       <div class="tools" id="chips" role="group" aria-label="Stromkreise hervorheben"></div>
       <div class="stage" id="stage">
         <svg id="svg" xmlns="http://www.w3.org/2000/svg" aria-label="Schaltplan"></svg>
@@ -361,7 +365,41 @@ const COMPS = [
  {id:"Br",name:"Blink-Begrenzungslampe, rechts",shape:"lamp",x:960,y:1140,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Begr.","t",1050,"Begrenzungslicht"]],gnd:true},
  {id:"Cr",name:"Schluss-Blinkleuchte, rechts",shape:"lamp",x:960,y:1300,w:120,h:50,terms:[["B","Blink","t",990,"Blinker"],["S","Schluss","t",1050,"Schlusslicht"]],gnd:true}
 ];
-const W = 1140, H = 1380;
+let W = 1140, H = 1380;
+
+/* Zweite Ansicht „Wie Original“: Lage der Bauteile nach den Originalplänen G168/G167.
+   pos: linke obere Ecke; terms: abweichende Klemmenseiten [Klemme, Seite, Lage relativ zum Bauteil]. */
+const LAYOUT_ORIG = {W:1170, H:1850, pos:{
+  Al:[290,10],Ar:[770,90],GND3:[460,70],GND4:[540,70],
+  X:[290,230],Ta:[480,230],Ua:[590,230],Z:[670,230],Ub:[790,230],V:[860,230],
+  N:[300,320],Lm:[300,480],M:[320,650],E:[530,440],F:[760,350],GND1:[1040,520],GND5:[690,600],
+  O:[470,760],Ga:[820,750],K:[900,750],Pe:[350,800],Pc:[350,860],Pb:[350,1000],Pa:[350,1150],
+  Ha:[600,1190],Hb:[790,1190],Gb:[990,1200],Hc:[10,1200],Bl:[10,1380],Br:[1000,1350],
+  La:[110,1500],Lb:[170,1500],Fa:[230,1500],Fc:[290,1520],D:[350,1460],GND2:[470,1590],Sa:[470,1400],Ls:[580,1470],
+  Fd:[950,1580],Fb:[990,1500],R:[320,1650],Ch:[580,1690],Cl:[10,1780],Cr:[1040,1780]},
+ terms:{
+  Ha:[["L","t",20],["R","t",50],["31b","t",80],["56d","t",110],["49a","b",20]],
+  Hb:[["56a","t",20],["56b","t",40],["15","t",70],["31b","t",100],["56","t",130]],
+  Gb:[["49","t",20],["49a","t",50],["C1","t",80],["C2","t",110],["C3","t",140]],
+  Hc:[["54","l",30],["BR","l",70],["86r","t",50],["86l","t",80],["87Vl","r",20],["87Hl","r",40],["87Hr","r",60],["87Vr","r",80]]
+ }};
+let BASE_COMPS=null, BASE_WH=null, layout="funktion";
+function applyLayout(name){
+  if(!BASE_COMPS){BASE_COMPS=JSON.parse(JSON.stringify(COMPS));BASE_WH=[W,H]}
+  layout=name;
+  COMPS.forEach((c,i)=>{const b=BASE_COMPS[i];
+    for(const k of Object.keys(c))delete c[k]; Object.assign(c,JSON.parse(JSON.stringify(b)));
+    if(name!=="original")return;
+    const np=LAYOUT_ORIG.pos[c.id]; if(!np)return;
+    const [nx,ny]=np, dx=nx-b.x, dy=ny-b.y; c.x=nx; c.y=ny;
+    const isV=sd=>sd==="l"||sd==="r"||sd==="lr";
+    const ov=LAYOUT_ORIG.terms[c.id];
+    c.terms=b.terms.map(t=>{const t2=[...t];const o=ov&&ov.find(x=>x[0]===t[0]);
+      if(o){t2[2]=o[1];t2[3]=(isV(o[1])?ny:nx)+o[2]} else t2[3]=t[3]+(isV(t[2])?dy:dx); return t2});
+  });
+  [W,H]=name==="original"?[LAYOUT_ORIG.W,LAYOUT_ORIG.H]:BASE_WH;
+  GW=W/G+1; GH=H/G+1;
+}
 
 /* Kabel: [Nr, Ausf., Farben, mm², von, nach, Kreis, Quelle, Hinweis] */
 const WIRES_RAW = [
@@ -490,7 +528,7 @@ function visibleVar(v){return v===""||v===variant}
 function fmtMM(m){return m==null?"–":String(m).replace(".",",")}
 
 /* ============ Router (A* auf 10er-Raster) ============ */
-const G=10, GW=W/G+1, GH=H/G+1;
+const G=10; let GW=W/G+1, GH=H/G+1;
 function termPoints(comp,term){
   const [id,,side,off]=term, pts=[];
   const add=(s)=>{
@@ -991,6 +1029,12 @@ function setVariant(v){variant=v;document.getElementById("var-le20").setAttribut
   if(sel&&sel.type==="net")sel=null;
   if(sel&&sel.type==="comp"&&!visibleVar(compById[sel.id].var||""))sel=null;
   render();select(sel);renderTable();renderComps();renderFuses();}
+function setLayout(name){applyLayout(name);
+  document.getElementById("lay-f").setAttribute("aria-pressed",name!=="original");document.getElementById("lay-o").setAttribute("aria-pressed",name==="original");
+  try{localStorage.setItem("ihc323-layout",name)}catch(e){}
+  render();select(sel,{keepSheet:true});fit();}
+document.getElementById("lay-f").onclick=()=>setLayout("funktion");
+document.getElementById("lay-o").onclick=()=>setLayout("original");
 document.getElementById("var-le20").onclick=()=>setVariant("*");
 document.getElementById("var-gt20").onclick=()=>setVariant("**");
 const VIEWS=["plan","kabel","bauteile","sicherungen","original","hinweise"];
@@ -1004,6 +1048,7 @@ mqMobile.addEventListener("change",()=>setSheet(!mqMobile.matches?true:!!sel));
 
 /* Start */
 try{const v=localStorage.getItem("ihc323-var");if(v==="*"||v==="**")variant=v}catch(e){}
+try{if(localStorage.getItem("ihc323-layout")==="original"){applyLayout("original");document.getElementById("lay-f").setAttribute("aria-pressed","false");document.getElementById("lay-o").setAttribute("aria-pressed","true")}}catch(e){}
 document.getElementById("var-le20").setAttribute("aria-pressed",variant==="*");document.getElementById("var-gt20").setAttribute("aria-pressed",variant==="**");
 render(); renderInfo(); renderChips(); renderTable(); renderComps(); renderFuses(); renderHints(); showView(); fit();
 </script>
