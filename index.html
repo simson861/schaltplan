@@ -65,7 +65,7 @@ main{padding-block:14px 32px}
 .view[hidden]{display:none!important}
 
 /* Plan */
-.planwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;height:calc(100vh - 150px);min-height:520px}
+.planwrap{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:14px;height:calc(100vh - 150px);height:calc(100dvh - 150px);min-height:520px}
 .stage{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0;touch-action:none}
 .stage svg{width:100%;height:100%;display:block;cursor:grab;user-select:none;-webkit-user-select:none}
 .stage svg.dragging{cursor:grabbing}
@@ -111,7 +111,7 @@ ul.plain li{padding:5px 0;border-bottom:1px solid var(--line);display:flex;gap:8
 .wire{cursor:pointer}
 .w-case{fill:none;stroke:var(--casing);stroke-linejoin:round;stroke-linecap:round}
 .w-core{fill:none;stroke-linejoin:round;stroke-linecap:butt}
-.w-hit{fill:none;stroke:transparent;stroke-width:12}
+.w-hit{fill:none;stroke:transparent;stroke-width:14px;vector-effect:non-scaling-stroke}
 .w-lbl rect{fill:var(--paper);stroke:var(--casing);stroke-width:.8}
 .w-lbl text{font:700 9px var(--f-mono);fill:var(--ink);text-anchor:middle;dominant-baseline:central}
 .plan-only .w-core{stroke-dasharray:6 4}
@@ -148,11 +148,53 @@ tbody tr:hover{background:color-mix(in srgb,var(--sel) 8%,transparent)}
 .legend-colors{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px 12px;font-size:13px}
 footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
 
+.sheet-bar{display:none}
+@media (max-width:1100px){.planwrap{grid-template-columns:minmax(0,1fr) 290px}}
 @media (max-width:900px){
-  .planwrap{grid-template-columns:1fr;height:auto}
-  .stage{height:72vh;min-height:420px}
-  aside.info{max-height:none}
-  .brand h1{font-size:22px}
+  .top{gap:8px 10px;padding-block:10px 8px}
+  .brand{flex:1 1 100%}
+  .brand h1{font-size:21px}
+  .brand h1 small{font-size:15px}
+  .spacer{display:none}
+  .seg{flex:1 1 220px}
+  .seg button{flex:1;padding:6px 8px;font-size:13.5px}
+  .search{flex:1 1 160px}
+  .search input{width:100%;font-size:16px}
+  .filters input{font-size:16px}
+  nav.tabs a{font-size:15px;padding:9px 10px 7px}
+  main{padding-block:10px 96px}
+  .planwrap{display:block;height:auto;min-height:0}
+  .stage{height:calc(100vh - 250px);height:calc(100dvh - 250px);min-height:320px;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)) + 8px)}
+  .tools{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;right:0;left:0;padding-inline:8px;top:8px}
+  .tools::-webkit-scrollbar{display:none}
+  .chip{flex:0 0 auto;padding:7px 12px 7px 10px}
+  .zoom{right:8px;bottom:8px}
+  .hint{display:none}
+  aside.info{position:fixed;left:0;right:0;bottom:0;z-index:30;border-radius:14px 14px 0 0;border-bottom:0;
+    max-height:min(62vh,560px);max-height:min(62dvh,560px);padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+    box-shadow:0 -6px 24px rgba(0,0,0,.18)}
+  aside.info.collapsed{overflow:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+  aside.info.collapsed #infobody{display:none}
+  .sheet-bar{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;border:0;background:var(--paper);padding:8px 0 10px;cursor:pointer;position:sticky;top:0;z-index:1;text-align:left}
+  .sheet-bar .grip{align-self:center;width:42px;height:5px;border-radius:3px;background:var(--line)}
+  .sheet-bar .st{display:flex;justify-content:space-between;align-items:center;gap:10px;font:700 18px/1.2 var(--f-display);letter-spacing:.02em}
+  .sheet-bar .st small{font:500 13px var(--f-body);color:var(--ink-2);white-space:nowrap}
+  .info .big{display:none}
+  .info .big + p{margin-top:0!important}
+  footer{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
+}
+@media (max-width:900px) and (pointer:coarse){.zoom button{width:44px;height:44px}}
+@media (max-width:700px){
+  #v-kabel table thead{display:none}
+  #v-kabel tbody tr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;position:relative;padding:10px 12px 10px 62px;border-bottom:1px solid var(--line)}
+  #v-kabel td{border:0;padding:0}
+  #v-kabel td.num{position:absolute;left:12px;top:10px;font-size:18px}
+  #v-kabel td[data-l="von"],#v-kabel td[data-l="nach"]{flex:1 1 100%}
+  #v-kabel td[data-l]::before{content:attr(data-l);color:var(--ink-2);font-size:12px;display:inline-block;min-width:38px}
+  #v-kabel td[data-l="mm²"]::before{min-width:0;margin-right:4px}
+  .fuse-tbl{font-size:13.5px}
+  .fuse-tbl td{padding:7px 8px}
+  .fuse-tbl td:first-child{width:44px;font-size:20px}
 }
 @media (prefers-reduced-motion:no-preference){.wire,.comp{transition:opacity .15s}}
 </style>
@@ -184,7 +226,7 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
         <div class="zoom"><button id="zin" aria-label="Vergrößern">+</button><button id="zout" aria-label="Verkleinern">−</button><button id="zfit" aria-label="Ganzen Plan zeigen" style="font-size:13px">⤢</button></div>
         <div class="hint" id="hint">Ziehen = verschieben · Mausrad/2 Finger = Zoom · Klick = Details</div>
       </div>
-      <aside class="info" id="info" aria-live="polite"></aside>
+      <aside class="info collapsed" id="info"><button class="sheet-bar" id="sheetbar" aria-expanded="false" aria-controls="infobody"><span class="grip"></span><span class="st"><span id="sheettitle">Schaltplan</span><small id="sheethint">Details ▲</small></span></button><div id="infobody" aria-live="polite"></div></aside>
     </div>
   </section>
 
@@ -215,6 +257,7 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
 
 <script>
 "use strict";
+const mqMobile=matchMedia("(max-width:900px)");
 /* ============================================================
    DATEN – exakt nach Kabelliste S. 49/50 (Quelle "L").
    Felder, die dort abgeschnitten sind, wurden aus dem Plan
@@ -590,7 +633,10 @@ function render(){
 /* ============ Ansicht: Zoom & Verschieben ============ */
 let view={x:0,y:0,w:W,h:H};
 function setVB(){svg.setAttribute("viewBox",`${view.x} ${view.y} ${view.w} ${view.h}`)}
-function fit(){const r=svg.getBoundingClientRect();if(!r.width)return;const top=document.getElementById("chips").offsetHeight+16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
+function sizeStage(){const st=document.getElementById("stage");if(!mqMobile.matches){st.style.height="";return}
+  const top=st.getBoundingClientRect().top+scrollY;const bar=document.getElementById("sheetbar").offsetHeight||64;
+  st.style.height=Math.max(320,Math.round(innerHeight-top-bar-14))+"px"}
+function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)return;const top=document.getElementById("chips").offsetHeight+16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
 function zoomAt(f,cx,cy){const r=svg.getBoundingClientRect();const px=view.x+(cx-r.left)/r.width*view.w, py=view.y+(cy-r.top)/r.height*view.h;
   const nw=Math.min(Math.max(view.w*f,120),W*3); const k=nw/view.w; view.x=px-(px-view.x)*k; view.y=py-(py-view.y)*k; view.w=nw; view.h*=k; setVB()}
 const ptrs=new Map(); let dragMoved=false, pinch0=null, start=null;
@@ -625,7 +671,10 @@ function traceNet(startKeys){
 
 /* ============ Auswahl & Detailspalte ============ */
 let sel=null, hiW=new Set(), hiC=new Set();
-const info=document.getElementById("info");
+const info=document.getElementById("infobody"), sheet=document.getElementById("info");
+function setSheet(open){sheet.classList.toggle("collapsed",!open);document.getElementById("sheetbar").setAttribute("aria-expanded",open);document.getElementById("sheethint").textContent=open?"schließen ▼":"Details ▲";if(open)sheet.scrollTop=0}
+document.getElementById("sheetbar").addEventListener("click",()=>setSheet(sheet.classList.contains("collapsed")));
+function setSheetTitle(t){document.getElementById("sheettitle").textContent=t}
 function select(s,opts={}){
   sel=s; hiW=new Set(); hiC=new Set();
   if(s&&s.type==="wire"){const w=wireByKey[s.key];if(!w||!visibleVar(w.v)){sel=null}else{hiW.add(w.key);hiC.add(termOf(w.a).c);hiC.add(termOf(w.b).c)}}
@@ -633,6 +682,7 @@ function select(s,opts={}){
   if(s&&s.type==="comp"){hiC.add(s.id);for(const w of WIRES)if(visibleVar(w.v)&&(termOf(w.a).c===s.id||termOf(w.b).c===s.id)){hiW.add(w.key);hiC.add(termOf(w.a).c);hiC.add(termOf(w.b).c)}}
   if(s&&s.type==="circuit"){for(const w of WIRES)if(visibleVar(w.v)&&w.cir===s.id){hiW.add(w.key);hiC.add(termOf(w.a).c);hiC.add(termOf(w.b).c)}}
   applySelection(); renderInfo(); renderChips();
+  if(mqMobile.matches&&!opts.keepSheet)setSheet(!!sel);
   if(opts.focus&&sel){const b=bboxOfSel();if(b)focusOn(b)}
 }
 function bboxOfSel(){let x1=1e9,y1=1e9,x2=-1e9,y2=-1e9;const add=(x,y)=>{x1=Math.min(x1,x);y1=Math.min(y1,y);x2=Math.max(x2,x);y2=Math.max(y2,y)};
@@ -694,6 +744,7 @@ function renderInfo(){
     h=`<h2>${CIRCUITS[sel.id][0]}</h2><ul class="plain">${ws.map(w=>`<li>${swatch(w.col)} ${wireLink(w)} <span>${esc(termLabel(w.a))} → ${esc(termLabel(w.b))}</span></li>`).join("")}</ul>`;
   }
   info.innerHTML=h;
+  setSheetTitle(!sel?"Schaltplan · Legende":sel.type==="wire"?`Kabel ${wireByKey[sel.key].n}${wireByKey[sel.key].v} · ${colorName(wireByKey[sel.key].col)}`:sel.type==="comp"?`${compById[sel.id].code===""?"":sel.id+" · "}${compById[sel.id].name}`:sel.type==="net"?`Stromkreis · ${sel.wires.length} Kabel`:CIRCUITS[sel.id][0]);
   const tr=document.getElementById("trace");
   if(tr)tr.onclick=()=>{const w=wireByKey[sel.key];const r=traceNet([nodeKey(w.a),nodeKey(w.b)]);select({type:"net",wires:r.wires,title:`ausgehend von Kabel ${w.n}${w.v}`},{focus:true})};
 }
@@ -718,7 +769,7 @@ function renderTable(){
   const q=document.getElementById("kq").value.trim().toLowerCase();
   const rows=allRows().filter(r=>!q||[String(r.n),r.v,colorName(r.col),r.a,r.b].join(" ").toLowerCase().includes(q));
   document.getElementById("kcount").textContent=rows.length+" Einträge · Ausführung "+VAR_LABEL[variant];
-  document.getElementById("ktb").innerHTML=rows.map(r=>`<tr data-key="${r.key||""}" data-comp="${r.comp||""}"><td class="num">${r.n}${r.v}</td><td>${r.src==="?"?"<small>unbekannt</small>":swatch(r.col)+" "+colorName(r.col)}</td><td class="mono">${fmtMM(r.mm)}</td><td>${esc(r.a)}</td><td>${esc(r.b)}</td><td>${r.v?VAR_LABEL[r.v]:"beide"}</td><td>${r.src==="?"?`<span class="badge b-warn">fehlt</span>`:srcBadge(r.src)}</td></tr>`).join("");
+  document.getElementById("ktb").innerHTML=rows.map(r=>`<tr data-key="${r.key||""}" data-comp="${r.comp||""}"><td class="num">${r.n}${r.v}</td><td>${r.src==="?"?"<small>unbekannt</small>":swatch(r.col)+" "+colorName(r.col)}</td><td class="mono" data-l="mm²">${fmtMM(r.mm)}</td><td data-l="von">${esc(r.a)}</td><td data-l="nach">${esc(r.b)}</td><td data-l="Ausf.">${r.v?VAR_LABEL[r.v]:"beide"}</td><td>${r.src==="?"?`<span class="badge b-warn">fehlt</span>`:srcBadge(r.src)}</td></tr>`).join("");
 }
 document.getElementById("kq").addEventListener("input",renderTable);
 document.getElementById("ktb").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;
@@ -776,20 +827,21 @@ function renderHints(){
 }
 
 /* ============ Suche, Variante, Reiter ============ */
-document.getElementById("q").addEventListener("keydown",e=>{if(e.key!=="Enter")return;const v=e.target.value.trim();if(!v)return;
+document.getElementById("q").addEventListener("keydown",e=>{if(e.key!=="Enter")return;const v=e.target.value.trim();if(!v)return;if(mqMobile.matches)e.target.blur();
   location.hash="plan";
   const m=v.match(/^(\d+)\s*(\*{0,2})$/);
   setTimeout(()=>{
     if(m){let k=m[1]+m[2];if(!wireByKey[k]||!visibleVar(wireByKey[k].v))k=m[1]+(wireByKey[m[1]]?"":variant);
       if(wireByKey[k]&&visibleVar(wireByKey[k].v)){select({type:"wire",key:k},{focus:true});return}
       const u=UNRESOLVED.find(x=>x[0]==+m[1]&&visibleVar(x[1]));const it=INTERNAL.find(x=>x[0]==+m[1]);
-      select(null);
+      select(null);if(mqMobile.matches)setSheet(true);setSheetTitle(`Kabel ${m[1]}`);
       info.innerHTML=it?`<h2>Kabel ${it[0]}</h2><p>${swatch(it[2])} ${colorName(it[2])}, ${fmtMM(it[3])} mm²</p><p>${esc(it[4])}. Liegt im Kombiinstrument und ist daher nicht als Leitung gezeichnet.</p>`
         :u?`<h2>Kabel ${u[0]}${u[1]}</h2><p>${u[2]?esc(u[2])+". ":""}Dieses Kabel steht auf Seite 51 der Kabelliste, die nicht vorliegt. Es ist deshalb nicht eingezeichnet.</p>`:`<h2>Nicht gefunden</h2><p>Kein Kabel ${esc(v)} in der Ausführung ${VAR_LABEL[variant]}.</p>`;
       return}
     const c=COMPS.find(c=>c.code!==""&&c.id.toLowerCase()===v.toLowerCase())||COMPS.find(c=>c.code!==""&&c.name.toLowerCase().includes(v.toLowerCase()));
     if(c&&visibleVar(c.var||""))select({type:"comp",id:c.id},{focus:true});
-    else info.innerHTML=`<h2>Nicht gefunden</h2><p>Kein Bauteil „${esc(v)}“ in der Ausführung ${VAR_LABEL[variant]}.</p>`;
+    else {if(mqMobile.matches)setSheet(true);setSheetTitle("Nicht gefunden");}
+    if(!(c&&visibleVar(c.var||"")))info.innerHTML=`<h2>Nicht gefunden</h2><p>Kein Bauteil „${esc(v)}“ in der Ausführung ${VAR_LABEL[variant]}.</p>`;
   },30);
 });
 function setVariant(v){variant=v;document.getElementById("var-le20").setAttribute("aria-pressed",v==="*");document.getElementById("var-gt20").setAttribute("aria-pressed",v==="**");
@@ -806,7 +858,8 @@ function showView(){const v=VIEWS.includes(location.hash.slice(1))?location.hash
   document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===v?"page":"false"));
   if(v==="plan")requestAnimationFrame(()=>{if(!showView.fitted){fit();showView.fitted=true}});}
 window.addEventListener("hashchange",showView);
-window.addEventListener("resize",()=>{if(!document.getElementById("v-plan").hidden)fit()});
+let rzT;window.addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>{if(!document.getElementById("v-plan").hidden)fit()},120)});
+mqMobile.addEventListener("change",()=>setSheet(!mqMobile.matches?true:!!sel));
 
 /* Start */
 try{const v=localStorage.getItem("ihc323-var");if(v==="*"||v==="**")variant=v}catch(e){}
