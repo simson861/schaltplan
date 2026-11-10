@@ -9,7 +9,11 @@ A static, German-language web app for the **IHC McCormick 323** tractor (manual 
 - **Betriebsanleitung**: the full operating manual, digitized as searchable text (tabs *Anleitung*, *Wartung*).
 - **Schaltplan**: an interactive, colored wiring diagram (tabs *Plan*, *Kabelliste*, *Bauteile*, *Sicherungen*, *Plan-Fotos*, *Datenlage*).
 
-There is no build step, no package manager and no test suite. Open `index.html` in a browser, or serve the folder (`python3 -m http.server`), and the app runs.
+There is no package manager and no test suite. Open `index.html` in a browser, or serve the folder (`python3 -m http.server`), and the app runs.
+
+The app is an installable web app, used mainly from the iPhone home screen. It is made up of `manifest.webmanifest`, `icons/`, the apple-* meta tags in `index.html`, and the service worker `sw.js` for offline use.
+
+`sw.js` is **generated**: after any change to `index.html`, `manual-app.js`, `ba/` or `img/`, run `python3 tools/build-sw.py`. It hashes all assets into a cache version. If you skip it, installed apps keep serving the old cached files. To change the worker logic, edit `tools/sw.template.js`, never `sw.js` directly. The worker registers only on https or localhost.
 
 **The user has said not to change the Schaltplan any more.** Leave the wiring data, the layouts and the router as they are unless asked.
 
@@ -52,7 +56,7 @@ Inline `**bold**` is supported. "Seite N" and "Bild N" in text become links auto
 
 The Wartung view is built from three tables found by regex in the data: pages `p24`, `p25` and `p26`. If you edit those tables, keep their captions and headers.
 
-Per-viewer state is kept in `localStorage`: chosen variant and layout, reader mode, last tab per area, Wartung checkboxes and operating hours. Every access is wrapped in try/catch.
+Per-viewer state is kept in `localStorage`: chosen variant and layout, reader mode, last tab per area and operating hours. Maintenance runs use two keys: `ihc323-wartung-aktiv` holds the running checklist and `ihc323-wartung-historie` the finished runs. A run for interval N includes the task groups of all intervals ≤ N. Every access is wrapped in try/catch.
 
 ## Regenerating `ba/` (not reproducible from this repo alone)
 

@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>IHC 323 Betriebsanleitung</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IHC 323">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#e9edee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12171a" media="(prefers-color-scheme: dark)">
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Interaktiver, farbiger Schaltplan des IHC McCormick 323 nach Betriebsanleitung (Plan G167/G168, Kabelliste S. 49/50).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -222,6 +231,61 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
 .area-switch a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
 body[data-area="ba"] nav.tabs a[data-a="el"], body[data-area="el"] nav.tabs a[data-a="ba"]{display:none}
 @media (max-width:900px){.area-switch{flex:1 1 100%}.area-switch a{flex:1;justify-content:center;padding:10px 8px}}
+
+.w-start,.w-run{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin:0 0 16px}
+.w-start h3,.w-run h3,.w-hist h3{font:700 22px/1.15 var(--f-display);margin:0 0 10px}
+.w-start-f{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end}
+.w-start-f label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+.w-start-f input{font:600 20px var(--f-mono);padding:9px 12px;width:180px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.w-start-f fieldset{border:0;padding:0;margin:0;min-width:0}
+.w-start-f legend{font-size:13px;color:var(--ink-2);padding:0;margin-bottom:4px}
+.w-int{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.w-int button{padding:10px 8px;font-size:15px;white-space:nowrap}
+nav.tabs a.has-run::after{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-left:6px;vertical-align:middle}
+.w-int button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.w-start-hint{color:var(--ink-2);font-size:14px;max-width:70ch;margin:12px 0}
+.w-start .btn,.w-run-act .btn{padding:11px 18px;font-size:16px}
+.w-count{color:var(--ink-2);align-self:center}
+.w-run{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.w-run-h{display:flex;flex-wrap:wrap;gap:10px 20px;justify-content:space-between;align-items:flex-end;margin-bottom:6px}
+.w-run-h p{margin:0;color:var(--ink-2);font-size:14px}
+.w-prog{position:relative;width:220px;max-width:100%;height:26px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.w-prog span{position:absolute;inset:0 auto 0 0;background:var(--ok);transition:width .25s}
+.w-prog b{position:relative;display:block;text-align:center;line-height:24px;font:700 13px/24px var(--f-mono);color:var(--ink)}
+.w-run-g h4{margin:16px 0 4px;font:600 12px/1.2 var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-2)}
+.w-run ul{list-style:none;margin:0;padding:0}
+.w-run li{display:flex;gap:10px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);min-height:52px}
+.w-run li label{display:flex;gap:12px;align-items:center;flex:1;min-width:0;padding:10px 0;cursor:pointer}
+.w-run li input{width:26px;height:26px;flex:none;accent-color:var(--ok);margin:0}
+.w-t{font-size:16px;line-height:1.35}
+.w-t small{display:block;color:var(--ok);font-size:12px;margin-top:2px}
+.w-run li.is-done .w-t{color:var(--ink-2);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--ink-2) 60%,transparent)}
+.w-run li.is-done .w-t small{text-decoration:none}
+.w-note{display:flex;flex-direction:column;gap:4px;margin-top:14px;font-size:13px;color:var(--ink-2)}
+.w-note textarea{font:16px/1.4 var(--f-body);padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);resize:vertical}
+.w-run-act{margin-top:14px}
+.w-confirm{margin-top:12px;padding:12px 14px;border-radius:6px;background:var(--warn-bg);border-left:3px solid var(--warn)}
+.w-confirm p{margin:0 0 6px}
+.w-over{margin:6px 0 18px}
+.w-over>summary{cursor:pointer;font:700 18px/1.2 var(--f-display);padding:8px 0}
+.w-hist{margin:10px 0 18px}
+.w-hist>ul{list-style:none;padding:0;margin:0;border:1px solid var(--line);border-radius:8px;background:var(--paper)}
+.w-hist>ul>li{border-top:1px solid var(--line);padding:10px 14px}
+.w-hist>ul>li:first-child{border-top:0}
+.w-hist summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.w-hist-items{list-style:none;padding:0;margin:8px 0;font-size:14px;columns:2 280px}
+.w-hist-items li{padding:2px 0;break-inside:avoid}
+.w-hist-items li.is-open{color:var(--warn)}
+.w-hist-note{font-size:14px;background:var(--bg);padding:8px 10px;border-radius:6px;white-space:pre-wrap}
+.w-empty{color:var(--ink-2)}
+.w-copyfb{width:100%;min-height:140px;margin-top:8px;font:13px var(--f-mono)}
+@media (max-width:900px){
+  .w-start,.w-run{margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)) + 6px);padding:14px}
+  .w-run-h{position:sticky;top:env(safe-area-inset-top,0px);z-index:3;background:var(--paper);padding:8px 0;margin:-8px 0 4px}
+  .w-prog{width:100%}
+  .w-start-f input{width:100%}
+  .w-start-f label{flex:1 1 100%}
+}
 /* ===== Betriebsanleitung ===== */
 body[data-area="ba"] .top .seg:not(.area-switch), body[data-area="ba"] .top .search{display:none}
 .tab-sep{width:1px;background:var(--line);margin:6px 6px}
@@ -1237,6 +1301,8 @@ render(); renderInfo(); renderChips(); renderTable(); renderComps(); renderFuses
 </script>
 <script src="ba/manual.js"></script>
 <script src="manual-app.js"></script>
-<script>showView();</script>
+<script>showView();
+if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+</script>
 </body>
 </html>

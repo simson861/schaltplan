@@ -218,44 +218,129 @@ window.manualRoute = function(sub){
 };
 
 /* ---------- Wartung ---------- */
+const LS = {get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}, set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}}};
+const K_RUN="ihc323-wartung-aktiv", K_HIST="ihc323-wartung-historie", K_BH="ihc323-bh";
+const plain = t => String(t).replace(/\*\*/g,"");
+const fmtD = iso => new Date(iso).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});
+const fmtDT = iso => new Date(iso).toLocaleString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+const num = v => { const n = parseFloat(String(v||"").replace(/\./g,"").replace(",", ".")); return n>=0 ? n : null; };
+function wGroups(){
+  const t = findTable("p24", /Regelmäßige Wartungs/); const groups = []; let g = null;
+  if(t) for(const r of t.rows){ const m = /^\*\*Nach jeweils (\d+) Betriebsstunden\*\*$/.exec(r[0]); if(m){ g = {h:+m[1], items:[]}; groups.push(g); } else if(g) g.items.push({text:r[0], nr:r[1]}); }
+  return groups;
+}
+function suggestInterval(bh, groups){
+  if(bh==null) return groups[0] ? groups[0].h : 10;
+  const r = Math.round(bh/10)*10; let best = groups[0].h;
+  for(const g of groups) if(r>0 && r % g.h === 0) best = g.h;
+  return best;
+}
 function buildWartung(){
   const box = document.getElementById("wartung"); if(!box) return;
-  const tPlan = findTable("p24", /Regelmäßige Wartungs/), tOil = findTable("p25", /Schmiermittel/), tErl = findTable("p26", /Erläuterungen/);
+  const groups = wGroups();
+  const tOil = findTable("p25", /Schmiermittel/), tErl = findTable("p26", /Erläuterungen/);
   const figPlan = (byId.p25||{blocks:[]}).blocks.find(b=>b.t==="fig");
-  const groups = []; let g = null;
-  if(tPlan) for(const r of tPlan.rows){ const m = /^\*\*Nach jeweils (\d+) Betriebsstunden\*\*$/.exec(r[0]); if(m){ g = {h:+m[1], items:[]}; groups.push(g); } else if(g) g.items.push(r); }
-  let done = {}; try{ done = JSON.parse(localStorage.getItem("ihc323-wartung")||"{}"); }catch(e){}
-  let hours = ""; try{ hours = localStorage.getItem("ihc323-bh")||""; }catch(e){}
-  const due = h => { const v = parseFloat(String(hours).replace(",", ".")); if(!(v>=0)) return ""; const next = Math.floor(v/h)*h + h; return `nächste fällig bei <b>${next.toLocaleString("de-DE")} Bh</b> (in ${(next-v).toLocaleString("de-DE")} h)`; };
-  box.innerHTML = `
-   <div class="w-top">
-     <div class="w-intro"><h2>Wartung und Pflege</h2><p>Nach der Tabelle „Regelmäßige Wartungs- und Pflegearbeiten“ auf <a class="pref" href="#anleitung-s23">Seite 23</a>. Die Nummern verweisen auf den Schmierplan, die Seitenzahlen auf die Anleitung.</p></div>
-     <label class="w-bh"><span>Stand Betriebsstundenzähler</span><input id="wbh" type="text" inputmode="decimal" placeholder="z. B. 2340" value="${esc(hours)}"></label>
-   </div>
-   <div class="w-grid">${groups.map(gr=>`
-     <section class="w-card"><header><h3>alle ${gr.h.toLocaleString("de-DE")} Betriebsstunden</h3><small class="w-due">${due(gr.h)}</small></header>
-       <ul>${gr.items.map((r,i)=>{ const k = gr.h+":"+i; return `<li><label><input type="checkbox" data-k="${k}" ${done[k]?"checked":""}><span>${inline(r[0])}</span></label>${r[1]?`<span class="w-nr" title="Nr. im Schmierplan">${esc(r[1])}</span>`:""}</li>`; }).join("")}</ul>
-     </section>`).join("")}
-   </div>
-   <div class="row"><button class="btn ghost" id="wreset">Häkchen zurücksetzen</button><small class="w-hint">Die Häkchen und der Zählerstand werden nur in diesem Browser gespeichert.</small></div>
-   <div class="b-note w-warn"><b>Hinweis zum Original:</b> Die Ölstandskontrolle des Lenkgetriebes (Nr. 11) steht in der Tabelle auf Seite 23 unter „alle 200 Betriebsstunden“, in den Erläuterungen zum Schmierplan auf Seite 25 aber in der Spalte „1600“. Im Zweifel den kürzeren Abstand einhalten.</div>
-   <div class="w-two">
-     <section><h3>Schmiermittel und Füllmengen</h3>${tOil?`<div class="tscroll"><table>${tOil.rows.map(r=>`<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join("")}</table></div>`:""}
-       <p class="b-src">Aus dem Schmierplan, <a class="pref" href="#anleitung-s24">Seite 24</a>. Weitere Angaben unter „Technische Einzelheiten“, <a class="pref" href="#anleitung-s4">Seite 4</a>.</p></section>
-     <section><h3>Schmierplan</h3>${figPlan&&figPlan.src?`<button class="fig-btn" data-src="${figPlan.src}"><img src="${figPlan.src}" alt="Schmierplan" loading="lazy"></button>`:""}<p class="b-src">Antippen zum Vergrößern.</p></section>
-   </div>
-   ${tErl?`<section class="w-erl"><h3>Erläuterungen zum Schmierplan</h3><div class="filters"><span>Intervall:</span>${["alle","10","50","200","800","1600"].map(v=>`<button class="chip" data-int="${v}" aria-pressed="${v==="alle"}">${v==="alle"?"alle":v+" h"}</button>`).join("")}</div>
-     <div class="tscroll"><table id="werl"><thead><tr>${tErl.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${tErl.rows.map(r=>`<tr data-ints="${[3,4,5,6,7].filter(i=>r[i]).map(i=>tErl.head[i]).join(" ")}">${r.map((c,i)=>`<td${i>=3?' class="mono c"':''}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-     <p class="b-src">Aus <a class="pref" href="#anleitung-s25">Seite 25</a>. (x) = bei staubiger Arbeit.</p></section>`:""}`;
-  box.querySelector("#wbh").addEventListener("input", e=>{ hours = e.target.value; try{ localStorage.setItem("ihc323-bh", hours); }catch(_){}
-    box.querySelectorAll(".w-card").forEach((c,i)=>c.querySelector(".w-due").innerHTML = due(groups[i].h)); });
-  box.addEventListener("change", e=>{ const cb = e.target.closest("[data-k]"); if(!cb) return; done[cb.dataset.k] = cb.checked; try{ localStorage.setItem("ihc323-wartung", JSON.stringify(done)); }catch(_){} });
-  box.querySelector("#wreset").onclick = ()=>{ done = {}; try{ localStorage.removeItem("ihc323-wartung"); }catch(_){} box.querySelectorAll("[data-k]").forEach(c=>c.checked=false); };
-  box.addEventListener("click", e=>{
-    const ch = e.target.closest("[data-int]"); if(ch){ box.querySelectorAll("[data-int]").forEach(b=>b.setAttribute("aria-pressed", String(b===ch)));
-      box.querySelectorAll("#werl tbody tr").forEach(tr=>tr.hidden = ch.dataset.int!=="alle" && !tr.dataset.ints.split(" ").includes(ch.dataset.int)); }
+  const render = () => {
+    const run = LS.get(K_RUN, null), hist = LS.get(K_HIST, []), bh = LS.get(K_BH, "");
+    const bhN = num(bh);
+    const due = h => { if(bhN==null) return ""; const next = Math.floor(bhN/h)*h + h; return `nächste bei ${next.toLocaleString("de-DE")} Bh`; };
+    let h = `<div class="w-top"><div class="w-intro"><h2>Wartung und Pflege</h2><p>Nach der Tabelle „Regelmäßige Wartungs- und Pflegearbeiten“, <a class="pref" href="#anleitung-s23">Seite 23</a>. Die grauen Nummern verweisen auf den Schmierplan.</p></div></div>`;
+    if(run){
+      const done = run.items.filter(i=>i.done).length, all = run.items.length, pct = Math.round(done/all*100);
+      h += `<section class="w-run" aria-labelledby="wrun-h">
+        <header class="w-run-h"><div><h3 id="wrun-h">Laufende Wartung: ${run.interval.toLocaleString("de-DE")}-Stunden-Wartung</h3>
+          <p>Begonnen ${fmtDT(run.start)}${run.bh!=null?` · Stand ${run.bh.toLocaleString("de-DE")} Bh`:""}</p></div>
+          <div class="w-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${done}"><span style="width:${pct}%"></span><b>${done} / ${all}</b></div></header>
+        ${groups.filter(g=>g.h<=run.interval).map(g=>{ const its = run.items.filter(i=>i.g===g.h); return `<div class="w-run-g"><h4>aus „alle ${g.h.toLocaleString("de-DE")} Betriebsstunden“</h4><ul>${its.map(i=>`
+          <li class="${i.done?"is-done":""}"><label><input type="checkbox" data-run="${i.k}" ${i.done?"checked":""}><span class="w-t">${inline(i.text)}${i.doneAt?`<small>erledigt ${fmtDT(i.doneAt)}</small>`:""}</span></label>${i.nr?`<span class="w-nr" title="Nr. im Schmierplan">${esc(i.nr)}</span>`:""}</li>`).join("")}</ul></div>`; }).join("")}
+        <label class="w-note"><span>Notizen (z. B. verwendetes Öl, Auffälligkeiten)</span><textarea id="wnote" rows="3">${esc(run.note||"")}</textarea></label>
+        <div class="row w-run-act">
+          <button class="btn" id="wfinish">${done===all?"Wartung abschließen":`Abschließen (${all-done} offen)`}</button>
+          <button class="btn ghost" id="wcancel">Wartung verwerfen</button>
+        </div>
+        <div id="wconfirm" class="w-confirm" hidden></div>
+      </section>`;
+    } else {
+      const sug = suggestInterval(bhN, groups);
+      h += `<section class="w-start"><h3>Wartung starten</h3>
+        <div class="w-start-f">
+          <label><span>Stand Betriebsstundenzähler</span><input id="wbh" type="text" inputmode="decimal" placeholder="z. B. 2400" value="${esc(bh)}"></label>
+          <fieldset><legend>Intervall</legend><div class="seg w-int" role="radiogroup">${groups.map(g=>`<button type="button" role="radio" data-int="${g.h}" aria-checked="${g.h===sug}">${g.h.toLocaleString("de-DE")} h</button>`).join("")}</div></fieldset>
+        </div>
+        <p class="w-start-hint" id="wsughint">${bhN!=null?`Bei ${bhN.toLocaleString("de-DE")} Bh ist die <b>${sug.toLocaleString("de-DE")}-Stunden-Wartung</b> fällig.`:"Gib den Zählerstand ein, dann schlägt die App das fällige Intervall vor."} Eine größere Wartung enthält alle kleineren Arbeiten, z. B. umfasst die 200-Stunden-Wartung auch die Punkte für 10 und 50 Stunden.</p>
+        <div class="row"><button class="btn" id="wgo">Wartung starten</button><span class="w-count" id="wcount"></span></div>
+      </section>`;
+    }
+    h += `<details class="w-over"${run?"":" open"}><summary>Übersicht aller Intervalle</summary><div class="w-grid">${groups.map(g=>`
+      <section class="w-card"><header><h3>alle ${g.h.toLocaleString("de-DE")} Betriebsstunden</h3><small class="w-due">${due(g.h)}</small></header>
+      <ul>${g.items.map(i=>`<li><span>${inline(i.text)}</span>${i.nr?`<span class="w-nr">${esc(i.nr)}</span>`:""}</li>`).join("")}</ul></section>`).join("")}</div></details>`;
+    h += `<section class="w-hist"><h3>Verlauf</h3>${hist.length?`<ul>${hist.slice().reverse().map((e,ri)=>{ const i = hist.length-1-ri; const d = e.items.filter(x=>x.done).length; return `
+      <li><details><summary><b>${fmtD(e.end)}</b> · ${e.interval.toLocaleString("de-DE")}-h-Wartung${e.bh!=null?` · ${e.bh.toLocaleString("de-DE")} Bh`:""} <span class="badge ${d===e.items.length?"b-ok":"b-warn"}">${d}/${e.items.length}</span></summary>
+        <ul class="w-hist-items">${e.items.map(x=>`<li class="${x.done?"is-done":"is-open"}">${x.done?"✓":"–"} ${esc(plain(x.text))}</li>`).join("")}</ul>
+        ${e.note?`<p class="w-hist-note">${esc(e.note)}</p>`:""}
+        <div class="row"><button class="btn ghost" data-copy="${i}">Als Text kopieren</button><button class="btn ghost" data-delh="${i}">Eintrag löschen</button></div></details></li>`; }).join("")}</ul>`:`<p class="w-empty">Noch keine abgeschlossene Wartung. Abgeschlossene Wartungen erscheinen hier mit Datum, Stundenstand und Notizen.</p>`}
+      <p class="b-src">Laufende Wartung und Verlauf werden nur auf diesem Gerät gespeichert. Mit „Als Text kopieren“ lässt sich ein Eintrag sichern, z. B. in eine Notiz.</p></section>`;
+    h += `<div class="b-note w-warn"><b>Hinweis zum Original:</b> Die Ölstandskontrolle des Lenkgetriebes (Nr. 11) steht in der Tabelle auf Seite 23 unter „alle 200 Betriebsstunden“, in den Erläuterungen zum Schmierplan auf Seite 25 aber in der Spalte „1600“. Im Zweifel den kürzeren Abstand einhalten.</div>
+     <div class="w-two">
+       <section><h3>Schmiermittel und Füllmengen</h3>${tOil?`<div class="tscroll"><table>${tOil.rows.map(r=>`<tr><th>${esc(r[0])}</th><td>${esc(r[1])}</td></tr>`).join("")}</table></div>`:""}
+         <p class="b-src">Aus dem Schmierplan, <a class="pref" href="#anleitung-s24">Seite 24</a>. Weitere Angaben unter „Technische Einzelheiten“, <a class="pref" href="#anleitung-s4">Seite 4</a>.</p></section>
+       <section><h3>Schmierplan</h3>${figPlan&&figPlan.src?`<button class="fig-btn" data-src="${figPlan.src}"><img src="${figPlan.src}" alt="Schmierplan" loading="lazy"></button>`:""}<p class="b-src">Antippen zum Vergrößern.</p></section>
+     </div>
+     ${tErl?`<section class="w-erl"><h3>Erläuterungen zum Schmierplan</h3><div class="filters"><span>Intervall:</span>${["alle","10","50","200","800","1600"].map(v=>`<button class="chip" data-erl="${v}" aria-pressed="${v==="alle"}">${v==="alle"?"alle":v+" h"}</button>`).join("")}</div>
+       <div class="tscroll"><table id="werl"><thead><tr>${tErl.head.map(x=>`<th>${esc(x)}</th>`).join("")}</tr></thead><tbody>${tErl.rows.map(r=>`<tr data-ints="${[3,4,5,6,7].filter(i=>r[i]).map(i=>tErl.head[i]).join(" ")}">${r.map((c,i)=>`<td${i>=3?' class="mono c"':''}>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+       <p class="b-src">Aus <a class="pref" href="#anleitung-s25">Seite 25</a>. (x) = bei staubiger Arbeit.</p></section>`:""}`;
+    box.innerHTML = h;
+    updateCount();
+    const tab = document.querySelector('nav.tabs a[data-v="wartung"]'); if(tab){ tab.classList.toggle("has-run", !!run); tab.title = run ? "Eine Wartung läuft" : ""; }
+  };
+  const selInt = () => { const b = box.querySelector('[data-int][aria-checked="true"]'); return b ? +b.dataset.int : null; };
+  const updateCount = () => { const c = box.querySelector("#wcount"); const iv = selInt(); if(c && iv) c.textContent = groups.filter(g=>g.h<=iv).reduce((n,g)=>n+g.items.length,0) + " Arbeiten"; };
+  box.addEventListener("input", e => {
+    if(e.target.id==="wbh"){ LS.set(K_BH, e.target.value); const bhN = num(e.target.value); const sug = suggestInterval(bhN, groups);
+      box.querySelectorAll("[data-int]").forEach(b=>b.setAttribute("aria-checked", String(+b.dataset.int===sug)));
+      const hint = box.querySelector("#wsughint"); if(hint) hint.firstChild && (hint.innerHTML = (bhN!=null?`Bei ${bhN.toLocaleString("de-DE")} Bh ist die <b>${sug.toLocaleString("de-DE")}-Stunden-Wartung</b> fällig.`:"Gib den Zählerstand ein, dann schlägt die App das fällige Intervall vor.") + " Eine größere Wartung enthält alle kleineren Arbeiten, z. B. umfasst die 200-Stunden-Wartung auch die Punkte für 10 und 50 Stunden.");
+      box.querySelectorAll(".w-due").forEach((el,i)=>{ const g = groups[i]; el.textContent = bhN==null?"":`nächste bei ${(Math.floor(bhN/g.h)*g.h+g.h).toLocaleString("de-DE")} Bh`; });
+      updateCount(); }
+    if(e.target.id==="wnote"){ const run = LS.get(K_RUN,null); if(run){ run.note = e.target.value; LS.set(K_RUN, run); } }
+  });
+  box.addEventListener("change", e => {
+    const cb = e.target.closest("[data-run]"); if(!cb) return;
+    const run = LS.get(K_RUN,null); if(!run) return;
+    const it = run.items.find(i=>i.k===cb.dataset.run); it.done = cb.checked; it.doneAt = cb.checked ? new Date().toISOString() : null;
+    LS.set(K_RUN, run);
+    const li = cb.closest("li"); li.classList.toggle("is-done", cb.checked);
+    const t = li.querySelector(".w-t small"); if(t) t.remove(); if(cb.checked) li.querySelector(".w-t").insertAdjacentHTML("beforeend", `<small>erledigt ${fmtDT(it.doneAt)}</small>`);
+    const done = run.items.filter(i=>i.done).length, all = run.items.length;
+    box.querySelector(".w-prog span").style.width = Math.round(done/all*100)+"%"; box.querySelector(".w-prog b").textContent = `${done} / ${all}`;
+    box.querySelector(".w-prog").setAttribute("aria-valuenow", done);
+    box.querySelector("#wfinish").textContent = done===all ? "Wartung abschließen" : `Abschließen (${all-done} offen)`;
+    if(navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
+  });
+  box.addEventListener("click", e => {
+    const ib = e.target.closest("[data-int]"); if(ib){ box.querySelectorAll("[data-int]").forEach(b=>b.setAttribute("aria-checked", String(b===ib))); updateCount(); return; }
+    if(e.target.closest("#wgo")){ const iv = selInt(); const bhN = num(LS.get(K_BH,""));
+      const items = []; for(const g of groups) if(g.h<=iv) g.items.forEach((it,i)=>items.push({k:g.h+":"+i, g:g.h, text:it.text, nr:it.nr, done:false, doneAt:null}));
+      LS.set(K_RUN, {start:new Date().toISOString(), bh:bhN, interval:iv, items, note:""}); render(); box.scrollIntoView({block:"start"}); return; }
+    const conf = box.querySelector("#wconfirm");
+    if(e.target.closest("#wfinish")){ const run = LS.get(K_RUN,null); const open = run.items.filter(i=>!i.done).length;
+      if(open && conf.hidden){ conf.hidden = false; conf.innerHTML = `<p>Es sind noch <b>${open}</b> Arbeiten offen. Trotzdem abschließen? Die offenen Punkte werden im Verlauf als nicht erledigt vermerkt.</p><div class="row"><button class="btn" id="wfinish2">Ja, abschließen</button><button class="btn ghost" id="wback">Weiter abhaken</button></div>`; return; }
+      finish(); return; }
+    if(e.target.closest("#wfinish2")){ finish(); return; }
+    if(e.target.closest("#wback")){ conf.hidden = true; return; }
+    if(e.target.closest("#wcancel")){ conf.hidden = false; conf.innerHTML = `<p>Laufende Wartung verwerfen? Alle Häkchen gehen verloren.</p><div class="row"><button class="btn" id="wcancel2">Ja, verwerfen</button><button class="btn ghost" id="wback">Abbrechen</button></div>`; return; }
+    if(e.target.closest("#wcancel2")){ LS.del(K_RUN); render(); return; }
+    const cp = e.target.closest("[data-copy]"); if(cp){ const ent = LS.get(K_HIST,[])[+cp.dataset.copy];
+      const txt = `IHC McCormick 323 – ${ent.interval}-Stunden-Wartung\nDatum: ${fmtD(ent.end)}${ent.bh!=null?`\nBetriebsstunden: ${ent.bh}`:""}\n\n${ent.items.map(x=>`${x.done?"[x]":"[ ]"} ${plain(x.text)}`).join("\n")}${ent.note?`\n\nNotizen: ${ent.note}`:""}`;
+      const ok = () => { cp.textContent = "Kopiert"; setTimeout(()=>cp.textContent="Als Text kopieren", 1600); };
+      if(navigator.clipboard) navigator.clipboard.writeText(txt).then(ok, ()=>prompt_fallback(txt)); else prompt_fallback(txt); return; }
+    const dl = e.target.closest("[data-delh]"); if(dl){ if(dl.dataset.sure){ const hst = LS.get(K_HIST,[]); hst.splice(+dl.dataset.delh,1); LS.set(K_HIST,hst); render(); } else { dl.dataset.sure = "1"; dl.textContent = "Wirklich löschen?"; } return; }
+    const ch = e.target.closest("[data-erl]"); if(ch){ box.querySelectorAll("[data-erl]").forEach(b=>b.setAttribute("aria-pressed", String(b===ch)));
+      box.querySelectorAll("#werl tbody tr").forEach(tr=>tr.hidden = ch.dataset.erl!=="alle" && !tr.dataset.ints.split(" ").includes(ch.dataset.erl)); return; }
     const fb = e.target.closest(".fig-btn"); if(fb) openLightbox(fb.dataset.src, "Schmierplan");
   });
+  function prompt_fallback(txt){ const ta = document.createElement("textarea"); ta.value = txt; ta.className = "w-copyfb"; box.querySelector(".w-hist").append(ta); ta.focus(); ta.select(); }
+  function finish(){ const run = LS.get(K_RUN,null); if(!run) return; run.end = new Date().toISOString(); const hst = LS.get(K_HIST,[]); hst.push(run); LS.set(K_HIST,hst); LS.del(K_RUN); render(); const hb = box.querySelector(".w-hist"); if(hb) hb.scrollIntoView({block:"start"}); }
+  render();
 }
 function findTable(pid, re){ const p = byId[pid]; if(!p) return null; return p.blocks.find(b=>b.t==="table" && re.test((b.caption||"")+" "+(b.head||[]).join(" "))); }
 
