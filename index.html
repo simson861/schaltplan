@@ -215,8 +215,15 @@ footer{color:var(--ink-2);font-size:12.5px;padding-block:6px 24px}
   .fuse-tbl td[data-l]::before{content:attr(data-l);display:block;color:var(--ink-2);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px}
 }
 
+
+/* Bereichsmenü */
+.area-switch{flex:none}
+.area-switch a{display:inline-flex;align-items:center;padding:8px 16px;font:700 16px/1 var(--f-display);letter-spacing:.04em;text-transform:uppercase;text-decoration:none;color:var(--ink)}
+.area-switch a[aria-current="page"]{background:var(--accent);color:var(--accent-ink)}
+body[data-area="ba"] nav.tabs a[data-a="el"], body[data-area="el"] nav.tabs a[data-a="ba"]{display:none}
+@media (max-width:900px){.area-switch{flex:1 1 100%}.area-switch a{flex:1;justify-content:center;padding:10px 8px}}
 /* ===== Betriebsanleitung ===== */
-body[data-area="ba"] .top .seg, body[data-area="ba"] .top .search{display:none}
+body[data-area="ba"] .top .seg:not(.area-switch), body[data-area="ba"] .top .search{display:none}
 .tab-sep{width:1px;background:var(--line);margin:6px 6px}
 .ba{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
 .ba-side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);max-height:calc(100vh - 30px);max-height:calc(100dvh - 30px);display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:6px;min-width:0}
@@ -354,7 +361,8 @@ table.cables td{font-size:13.5px}
 </head>
 <body>
 <header class="top">
-  <div class="brand"><span class="logo">IHC</span><h1>McCormick 323 <small id="area">Betriebsanleitung</small></h1></div>
+  <div class="brand"><span class="logo">IHC</span><h1>McCormick 323</h1></div>
+  <nav class="seg area-switch" aria-label="Bereich"><a href="#anleitung" id="go-ba" data-a="ba">Betriebsanleitung</a><a href="#plan" id="go-el" data-a="el">Schaltplan</a></nav>
   <div class="spacer"></div>
   <div class="seg" role="group" aria-label="Ausführung">
     <button id="var-le20" aria-pressed="true">bis 20 km/h<small>Plan G168 · *</small></button>
@@ -363,15 +371,14 @@ table.cables td{font-size:13.5px}
   <div class="search"><input id="q" type="search" placeholder="Kabel-Nr. oder Bauteil (z. B. 17, Pa, Gb)" aria-label="Suchen"></div>
 </header>
 <nav class="tabs" aria-label="Ansichten">
-  <a href="#anleitung" data-v="anleitung">Anleitung</a>
-  <a href="#wartung" data-v="wartung">Wartung</a>
-  <span class="tab-sep" aria-hidden="true"></span>
-  <a href="#plan" data-v="plan">Schaltplan</a>
-  <a href="#kabel" data-v="kabel">Kabelliste</a>
-  <a href="#bauteile" data-v="bauteile">Bauteile</a>
-  <a href="#sicherungen" data-v="sicherungen">Sicherungen</a>
-  <a href="#original" data-v="original">Plan-Fotos</a>
-  <a href="#hinweise" data-v="hinweise">Datenlage</a>
+  <a href="#anleitung" data-v="anleitung" data-a="ba">Anleitung</a>
+  <a href="#wartung" data-v="wartung" data-a="ba">Wartung</a>
+  <a href="#plan" data-v="plan" data-a="el">Plan</a>
+  <a href="#kabel" data-v="kabel" data-a="el">Kabelliste</a>
+  <a href="#bauteile" data-v="bauteile" data-a="el">Bauteile</a>
+  <a href="#sicherungen" data-v="sicherungen" data-a="el">Sicherungen</a>
+  <a href="#original" data-v="original" data-a="el">Plan-Fotos</a>
+  <a href="#hinweise" data-v="hinweise" data-a="el">Datenlage</a>
 </nav>
 <main>
   <section class="view" id="v-anleitung" hidden>
@@ -1207,7 +1214,11 @@ document.getElementById("var-gt20").onclick=()=>setVariant("**");
 const VIEWS=["anleitung","wartung","plan","kabel","bauteile","sicherungen","original","hinweise"];
 const AREA={anleitung:"Betriebsanleitung",wartung:"Wartung"};
 function showView(){const raw=location.hash.slice(1);const base=raw.split("-")[0];const v=VIEWS.includes(base)?base:"anleitung";
-  document.body.dataset.area=AREA[v]?"ba":"el";document.getElementById("area").textContent=AREA[v]||"Elektrik";
+  const ar=AREA[v]?"ba":"el";document.body.dataset.area=ar;
+  document.querySelectorAll(".area-switch a").forEach(a=>a.setAttribute("aria-current",a.dataset.a===ar?"page":"false"));
+  try{localStorage.setItem("ihc323-last-"+ar,v)}catch(e){}
+  const other=ar==="ba"?"el":"ba";let lo=null;try{lo=localStorage.getItem("ihc323-last-"+other)}catch(e){}
+  if(lo&&VIEWS.includes(lo))document.getElementById("go-"+other).setAttribute("href","#"+lo);
   if(v==="anleitung"&&window.manualRoute)window.manualRoute(raw.slice(10));
   for(const x of VIEWS)document.getElementById("v-"+x).hidden=x!==v;
   document.querySelectorAll("nav.tabs a").forEach(a=>{a.setAttribute("aria-current",a.dataset.v===v?"page":"false");if(a.dataset.v===v)a.scrollIntoView({block:"nearest",inline:"nearest"})});
