@@ -26,20 +26,23 @@ function inline(s){
   return h;
 }
 /* „(2) Bild 49“: Nummer in Klammern der Abbildung im selben Satz zuordnen */
+let ctxFig = null; // zuletzt genannte Abbildung auf der aktuellen Seite
 function linkCallouts(h){
   const all = [...h.matchAll(/\bBild\s+(\d{1,3}[a-z]?)\b/g)].map(m=>m[1]);
   const only = [...new Set(all)].length === 1 ? all[0] : null;
-  let last = null;
-  return h.split(/(?<=[.!?;:])\s+(?=[A-ZÄÖÜ„"(])/).map(sent => {
+  let last = ctxFig;
+  const res = h.split(/(?<=[.!?;:])\s+(?=[A-ZÄÖÜ„"(])/).map(sent => {
     const refs = [...sent.matchAll(/\bBild\s+(\d{1,3}[a-z]?)\b/g)].map(m=>({n:m[1], i:m.index}));
     const out = sent.replace(/\((\d{1,2}[a-z]?)\)/g, (m, num, off) => {
       let f = refs.find(x=>x.i>off) || [...refs].reverse().find(x=>x.i<off);
       const fig = f ? f.n : (only || last);
-      return fig ? `<a class="cref" href="#" data-fig="Bild ${fig}" data-n="${num}">(${num})</a>` : m;
+      return fig ? `<a class="cref" href="#" data-fig="Bild ${fig}" data-n="${num}"${f?"":' data-ctx="1"'}>(${num})</a>` : m;
     });
     if(refs.length) last = refs[refs.length-1].n;
     return out;
   }).join(" ");
+  ctxFig = last;
+  return res;
 }
 function pagesCell(s){
   return esc(s).replace(/(\d{1,2})/g, n => byPrinted[n] ? `<a class="pref" href="#anleitung-s${n}">${n}</a>` : n);
@@ -51,7 +54,7 @@ function renderBlock(b, p){
   const id = "b" + (++blkSeq);
   const a = ` id="${id}" class="blk`;
   switch(b.t){
-    case "h1": return `<h2${a} b-h1" data-toc="1">${inline(b.text)}</h2>`;
+    case "h1": ctxFig = null; return `<h2${a} b-h1" data-toc="1">${inline(b.text)}</h2>`;
     case "h2": return `<h3${a} b-h2" data-toc="2">${inline(b.text)}</h3>`;
     case "h3": return `<h4${a} b-h3">${inline(b.text)}</h4>`;
     case "p":  return `<p${a}">${inline(b.text).replace(/\n/g,"<br>")}</p>`;
@@ -70,6 +73,7 @@ function renderBlock(b, p){
     }
     case "fig": {
       if(b.label) figIndex[b.label] = figIndex[b.label] || id;
+      { const m = /^Bild\s+(\S+)$/.exec(b.label||""); if(m) ctxFig = m[1]; }
       figBlocks[id] = b; if(b.src) figBySpec[b.src.split("/").pop().replace(".jpg","")] = id;
       const img = b.src ? `<button class="fig-btn" data-src="${b.src}" aria-label="Abbildung vergrößern"><span class="fig-wrap"><img src="${b.src}" alt="${esc((b.label?b.label+": ":"")+(b.caption||"Abbildung"))}" loading="lazy" width="${b.w||600}" height="${b.h||400}"><svg class="fig-marks" viewBox="0 0 ${b.w||600} ${b.h||400}" preserveAspectRatio="none" aria-hidden="true"></svg></span></button>` : "";
       const legNum = l => { const m = /^\s*([0-9]{1,2}[a-z]?|[A-Z][0-9]?)\s*[-–=]/.exec(l); return m ? m[1] : null; };
@@ -100,6 +104,7 @@ const M_PARTS = [["Al","Einbauscheinwerfer, links"],["Ar","Einbauscheinwerfer, r
 const doc = document.getElementById("badoc"), toc = document.getElementById("batoc"), sel = document.getElementById("bapage");
 function build(){
   blkSeq = 0;
+  ctxFig = null;
   doc.innerHTML = pages.map(p => {
     const body = p.blocks.map(b=>renderBlock(b,p)).join("");
     const empty = !p.blocks.some(b=>b.t!=="missing");
@@ -141,9 +146,27 @@ function showMark(figId, num, scroll){
   fig.querySelectorAll(".leg-link").forEach(x=>x.classList.toggle("on", nums.includes(x.dataset.n)));
   if(scroll) scrollToEl(fig.querySelector(".fig-btn") || fig, false);
 }
+function legendText(b, n){ for(const l of b.legend||[]){ const m = /^\s*([0-9]{1,2}[a-z]?|[A-Z][0-9]?)\s*[-–=]\s*(.*)$/.exec(l); if(m && m[1]===n) return m[2].toLowerCase(); } return ""; }
+function stemsBefore(a){
+  let t = ""; for(let n = a.previousSibling; n && t.length < 80; n = n.previousSibling) t = n.textContent + " " + t;
+  const words = t.replace(/\([^)]*\)/g," ").split(/[^A-Za-zÄÖÜäöüß]+/).filter(Boolean).slice(-3);
+  return words.filter(w=>w.length>=5).map(w=>w.toLowerCase().slice(0,5));
+}
 function resolveRefs(){
-  doc.querySelectorAll(".cref").forEach(a => { const id = figIndex[a.dataset.fig]; const b = id && figBlocks[id];
-    if(!(b && b.marks && b.marks[a.dataset.n])) a.replaceWith(document.createTextNode(a.textContent)); else a.title = `${a.dataset.fig}, Nr. ${a.dataset.n} zeigen`; });
+  doc.querySelectorAll(".cref").forEach(a => {
+    const n = a.dataset.n; let id = figIndex[a.dataset.fig]; let b = id && figBlocks[id];
+    if(a.dataset.ctx){
+      const st = stemsBefore(a); const ok = bb => bb && bb.marks && bb.marks[n] && st.some(x=>legendText(bb,n).includes(x));
+      if(!ok(b)){
+        // andere Abbildungen dieser und der vorigen Seite prüfen
+        const pg = a.closest(".pg"); const pgs = [pg, pg.previousElementSibling].filter(Boolean);
+        const cand = pgs.flatMap(x=>[...x.querySelectorAll(".b-fig")].map(f=>f.id));
+        const hit = cand.find(fid => ok(figBlocks[fid]));
+        if(hit){ id = hit; b = figBlocks[hit]; a.dataset.fig = b.label; } else { b = null; }
+      }
+    }
+    if(!(b && b.marks && b.marks[n])) a.replaceWith(document.createTextNode(a.textContent)); else a.title = `${a.dataset.fig}, Nr. ${n} zeigen`;
+  });
 }
 window.showSchmierstelle = nums => { const id = figBySpec["p25-1"]; if(!id) return; location.hash = "anleitung-s24"; setTimeout(()=>showMark(id, nums, true), 120); };
 
