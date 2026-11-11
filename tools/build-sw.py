@@ -7,7 +7,7 @@ import hashlib, json, os, glob
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 core = ["./", "index.html", "manual-app.js", "ba/manual.js", "manifest.webmanifest",
-        "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png"] + sorted(glob.glob("img/*.jpg"))
+        "icons/apple-touch-icon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/favicon-32.png"] + sorted(glob.glob("img/*.jpg"))
 rest = sorted(glob.glob("ba/fig/*.jpg")) + sorted(glob.glob("ba/pages/*.jpg"))
 h = hashlib.sha256()
 for f in [c for c in core if c != "./"] + rest:
