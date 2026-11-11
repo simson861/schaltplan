@@ -287,6 +287,21 @@ nav.tabs a.has-run::after{content:"";display:inline-block;width:8px;height:8px;b
   .w-start-f input{width:100%}
   .w-start-f label{flex:1 1 100%}
 }
+
+/* Vollbild Schaltplan */
+.zoom button svg{display:block;margin:auto}
+.fs-bar{display:none}
+.stage.is-fs{position:fixed!important;inset:0;z-index:70;height:auto!important;margin:0!important;border-radius:0;border:0;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.stage.is-fs .fs-bar{display:flex;position:absolute;left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));top:calc(env(safe-area-inset-top,0px) + 10px);
+  gap:10px;align-items:center;justify-content:space-between;background:color-mix(in srgb,var(--paper) 94%,transparent);border:1px solid var(--line);border-radius:8px;padding:6px 6px 6px 12px;box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:14px;line-height:1.3}
+.stage.is-fs .fs-bar span{min-width:0}
+.stage.is-fs .fs-bar small{color:var(--ink-2)}
+.stage.is-fs .fs-bar .btn{flex:none;padding:8px 12px}
+.stage.is-fs .zoom{right:max(10px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 10px)}
+.stage.is-fs .hint{display:none}
+.stage:fullscreen{width:100%;height:100%}
+html.fs-lock,html.fs-lock body{overflow:hidden}
 /* ===== Betriebsanleitung ===== */
 body[data-area="ba"] .top .seg:not(.area-switch), body[data-area="ba"] .top .search{display:none}
 .tab-sep{width:1px;background:var(--line);margin:6px 6px}
@@ -473,7 +488,8 @@ table.cables td{font-size:13.5px}
       <div class="tools" id="chips" role="group" aria-label="Stromkreise hervorheben"></div>
       <div class="stage" id="stage">
         <svg id="svg" xmlns="http://www.w3.org/2000/svg" aria-label="Schaltplan"></svg>
-        <div class="zoom"><button id="zin" aria-label="Vergrößern">+</button><button id="zout" aria-label="Verkleinern">−</button><button id="zfit" aria-label="Ganzen Plan zeigen" style="font-size:13px">⤢</button></div>
+        <div class="zoom"><button id="zin" aria-label="Vergrößern">+</button><button id="zout" aria-label="Verkleinern">−</button><button id="zfit" aria-label="Ganzen Plan zeigen" title="Ganzen Plan zeigen" style="font-size:13px">⤢</button><button id="zfs" aria-label="Vollbild" title="Vollbild"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+        <div class="fs-bar" id="fsbar"><span id="fsinfo">Kabel oder Bauteil antippen</span><button class="btn" id="fsclose">Vollbild beenden</button></div>
         <div class="hint" id="hint">Ziehen = verschieben · Mausrad/2 Finger = Zoom · Klick = Details</div>
       </div>
       </div>
@@ -1032,10 +1048,10 @@ function render(){
 /* ============ Ansicht: Zoom & Verschieben ============ */
 let view={x:0,y:0,w:W,h:H};
 function setVB(){svg.setAttribute("viewBox",`${view.x} ${view.y} ${view.w} ${view.h}`)}
-function sizeStage(){const st=document.getElementById("stage");if(!mqMobile.matches){st.style.height="";return}
+function sizeStage(){const st=document.getElementById("stage");if(!mqMobile.matches||st.classList.contains("is-fs")){st.style.height="";return}
   const top=st.getBoundingClientRect().top+scrollY;const bar=document.getElementById("sheetbar").offsetHeight||64;
   st.style.height=Math.max(320,Math.round(innerHeight-top-bar-14))+"px"}
-function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)return;const top=16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
+function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)return;const fsb=document.getElementById("stage").classList.contains("is-fs")?document.getElementById("fsbar"):null;const top=fsb?fsb.offsetHeight+24:16;const pad=16;const aw=r.width-pad*2, ah=r.height-top-pad;const s=Math.max(W/aw,H/ah);view.w=r.width*s;view.h=r.height*s;view.x=(W-view.w)/2;view.y=-top*s;setVB()}
 function zoomAt(f,cx,cy){const r=svg.getBoundingClientRect();const px=view.x+(cx-r.left)/r.width*view.w, py=view.y+(cy-r.top)/r.height*view.h;
   const nw=Math.min(Math.max(view.w*f,120),W*3); const k=nw/view.w; view.x=px-(px-view.x)*k; view.y=py-(py-view.y)*k; view.w=nw; view.h*=k; setVB()}
 const ptrs=new Map(); let dragMoved=false, pinch0=null, start=null;
@@ -1053,6 +1069,26 @@ svg.addEventListener("wheel",e=>{e.preventDefault();zoomAt(Math.exp(e.deltaY*0.0
 document.getElementById("zin").onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(0.75,r.left+r.width/2,r.top+r.height/2)};
 document.getElementById("zout").onclick=()=>{const r=svg.getBoundingClientRect();zoomAt(1.33,r.left+r.width/2,r.top+r.height/2)};
 document.getElementById("zfit").onclick=fit;
+/* Vollbild: echtes Fullscreen, wo erlaubt (Rechner, iPad), sonst bildschirmfüllend (iPhone) */
+const stageEl=document.getElementById("stage");
+function fsActive(){return stageEl.classList.contains("is-fs")}
+function setFs(on){
+  stageEl.classList.toggle("is-fs",on);document.documentElement.classList.toggle("fs-lock",on);
+  document.getElementById("zfs").setAttribute("aria-pressed",String(on));
+  if(on){const rq=stageEl.requestFullscreen||stageEl.webkitRequestFullscreen;if(rq){try{const pr=rq.call(stageEl);if(pr&&pr.catch)pr.catch(()=>{})}catch(_){}}}
+  else if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document)}
+  updateFsInfo();setTimeout(fit,60);
+}
+document.getElementById("zfs").onclick=()=>setFs(!fsActive());
+document.getElementById("fsclose").onclick=()=>setFs(false);
+const onFsChange=()=>{if(!(document.fullscreenElement||document.webkitFullscreenElement)&&fsActive())setFs(false)};
+document.addEventListener("fullscreenchange",onFsChange);document.addEventListener("webkitfullscreenchange",onFsChange);
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&fsActive())setFs(false)});
+window.addEventListener("hashchange",()=>{if(fsActive())setFs(false)});
+function updateFsInfo(){const el=document.getElementById("fsinfo");if(!el)return;
+  if(!sel){el.textContent="Kabel oder Bauteil antippen";return}
+  if(sel.type==="wire"){const w=wireByKey[sel.key];el.innerHTML=`<b>Kabel ${w.n}${w.v}</b> ${swatch(w.col)} ${esc(colorName(w.col))}${w.mm?` · ${fmtMM(w.mm)} mm²`:""}<br><small>${esc(termLabel(w.a))} → ${esc(termLabel(w.b))}</small>`;return}
+  el.textContent=document.getElementById("sheettitle").textContent;}
 function focusOn(bbox){const r=svg.getBoundingClientRect();const pad=60;const bw=bbox.w+pad*2,bh=bbox.h+pad*2;const s=Math.max(bw/r.width,bh/r.height,0.35*W/r.width*0.6);
   if(view.w<=bw||view.h<=bh||bbox.x<view.x||bbox.y<view.y||bbox.x+bbox.w>view.x+view.w||bbox.y+bbox.h>view.y+view.h){view.w=r.width*s;view.h=r.height*s;view.x=bbox.x+bbox.w/2-view.w/2;view.y=bbox.y+bbox.h/2-view.h/2;setVB()}}
 
@@ -1148,6 +1184,7 @@ function renderInfo(){
     h=`<h2>${CIRCUITS[sel.id][0]}</h2><ul class="plain">${ws.map(w=>`<li>${swatch(w.col)} ${wireLink(w)} <span>${esc(termLabel(w.a))} → ${esc(termLabel(w.b))}</span></li>`).join("")}</ul>`;
   }
   info.innerHTML=h;
+  if(typeof updateFsInfo==="function")setTimeout(updateFsInfo,0);
   setSheetTitle(!sel?"Schaltplan · Legende":sel.type==="wire"?`Kabel ${wireByKey[sel.key].n}${wireByKey[sel.key].v} · ${colorName(wireByKey[sel.key].col)}`:sel.type==="comp"?`${compById[sel.id].code===""?"":sel.id+" · "}${compById[sel.id].name}`:sel.type==="net"?`Stromkreis · ${sel.wires.length} Kabel`:CIRCUITS[sel.id][0]);
   const tr=document.getElementById("trace");
   if(tr)tr.onclick=()=>{const w=wireByKey[sel.key];const r=traceNet([nodeKey(w.a),nodeKey(w.b)]);select({type:"net",wires:r.wires,title:`ausgehend von Kabel ${w.n}${w.v}`},{focus:true})};
