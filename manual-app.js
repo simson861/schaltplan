@@ -8,7 +8,9 @@ const byId = Object.fromEntries(pages.map(p=>[p.id,p]));
 const byPrinted = {}; for(const p of pages) if(p.printed) byPrinted[String(p.printed)] = p;
 const pageLabel = p => p.printed ? "Seite " + p.printed : (p.label || "ohne Seitenzahl");
 const pageKey = p => p.printed ? "s" + p.printed : p.id;
-const figIndex = {};   // "Bild 12" -> {page, el id}
+const figIndex = {};   // "Bild 12" -> el id
+const figBlocks = {};  // el id -> fig block
+const figBySpec = {};  // "p25-1" -> el id
 
 /* ---------- Inline-Formatierung und Verweise ---------- */
 function inline(s){
@@ -19,8 +21,25 @@ function inline(s){
     const parts = list.replace(/(\d{1,2})/g, n => byPrinted[n] ? `<a class="pref" href="#anleitung-s${n}">${n}</a>` : n);
     return w + " " + parts;
   });
-  h = h.replace(/\b(Bild)\s+(\d{1,3})\b/g, (m, w, n) => `<a class="fref" href="#" data-fig="Bild ${n}">${w} ${n}</a>`);
+  h = linkCallouts(h);
+  h = h.replace(/\b(Bild)\s+(\d{1,3}[a-z]?)\b(?![^<]*<\/a>)/g, (m, w, n) => `<a class="fref" href="#" data-fig="Bild ${n}">${w} ${n}</a>`);
   return h;
+}
+/* „(2) Bild 49“: Nummer in Klammern der Abbildung im selben Satz zuordnen */
+function linkCallouts(h){
+  const all = [...h.matchAll(/\bBild\s+(\d{1,3}[a-z]?)\b/g)].map(m=>m[1]);
+  const only = [...new Set(all)].length === 1 ? all[0] : null;
+  let last = null;
+  return h.split(/(?<=[.!?;:])\s+(?=[A-ZÄÖÜ„"(])/).map(sent => {
+    const refs = [...sent.matchAll(/\bBild\s+(\d{1,3}[a-z]?)\b/g)].map(m=>({n:m[1], i:m.index}));
+    const out = sent.replace(/\((\d{1,2}[a-z]?)\)/g, (m, num, off) => {
+      let f = refs.find(x=>x.i>off) || [...refs].reverse().find(x=>x.i<off);
+      const fig = f ? f.n : (only || last);
+      return fig ? `<a class="cref" href="#" data-fig="Bild ${fig}" data-n="${num}">(${num})</a>` : m;
+    });
+    if(refs.length) last = refs[refs.length-1].n;
+    return out;
+  }).join(" ");
 }
 function pagesCell(s){
   return esc(s).replace(/(\d{1,2})/g, n => byPrinted[n] ? `<a class="pref" href="#anleitung-s${n}">${n}</a>` : n);
@@ -51,8 +70,10 @@ function renderBlock(b, p){
     }
     case "fig": {
       if(b.label) figIndex[b.label] = figIndex[b.label] || id;
-      const img = b.src ? `<button class="fig-btn" data-src="${b.src}" aria-label="Abbildung vergrößern"><img src="${b.src}" alt="${esc((b.label?b.label+": ":"")+(b.caption||"Abbildung"))}" loading="lazy" width="${b.w||600}" height="${b.h||400}"></button>` : "";
-      const leg = (b.legend||[]).length ? `<ul class="legend">${b.legend.map(l=>`<li>${inline(l)}</li>`).join("")}</ul>` : "";
+      figBlocks[id] = b; if(b.src) figBySpec[b.src.split("/").pop().replace(".jpg","")] = id;
+      const img = b.src ? `<button class="fig-btn" data-src="${b.src}" aria-label="Abbildung vergrößern"><span class="fig-wrap"><img src="${b.src}" alt="${esc((b.label?b.label+": ":"")+(b.caption||"Abbildung"))}" loading="lazy" width="${b.w||600}" height="${b.h||400}"><svg class="fig-marks" viewBox="0 0 ${b.w||600} ${b.h||400}" preserveAspectRatio="none" aria-hidden="true"></svg></span></button>` : "";
+      const legNum = l => { const m = /^\s*([0-9]{1,2}[a-z]?|[A-Z][0-9]?)\s*[-–=]/.exec(l); return m ? m[1] : null; };
+      const leg = (b.legend||[]).length ? `<ul class="legend">${b.legend.map(l=>{ const n = legNum(l); const has = n && b.marks && b.marks[n]; return `<li${has?` class="leg-link" data-n="${esc(n)}" tabindex="0" role="button"`:""}>${has?esc(l):inline(l)}</li>`; }).join("")}</ul>` : "";
       const cap = (b.label||b.caption) ? `<figcaption>${b.label?`<b>${esc(b.label)}</b> `:""}${inline(b.caption||"")}${leg}</figcaption>` : (leg?`<figcaption>${leg}</figcaption>`:"");
       return `<figure${a} b-fig">${img}${cap}</figure>`;
     }
@@ -98,8 +119,33 @@ function build(){
   if(open) html += "</ul></details>";
   toc.innerHTML = html;
   sel.innerHTML = pages.map(p=>{const h=p.blocks.find(b=>b.t==="h1"||b.t==="h2");return `<option value="${p.id}">${esc(pageLabel(p))}${h?" – "+esc(h.text.replace(/\*\*/g,"").slice(0,40)):""}</option>`}).join("");
+  resolveRefs();
   buildIndex();
 }
+
+/* ---------- Pfeil-Markierung ---------- */
+let markedFig = null;
+function clearMark(){ if(!markedFig) return; markedFig.querySelector(".fig-marks").innerHTML = ""; markedFig.querySelectorAll(".leg-link.on").forEach(x=>x.classList.remove("on")); markedFig.classList.remove("marked"); markedFig = null; }
+function showMark(figId, num, scroll){
+  const fig = document.getElementById(figId); const b = figBlocks[figId]; if(!fig || !b || !b.marks) return;
+  const nums = String(num).split(",");
+  clearMark(); markedFig = fig; fig.classList.add("marked");
+  const W = b.w, H = b.h, R = Math.max(16, Math.min(W, H) * 0.035);
+  let svg = "";
+  for(const n of nums) for(const occ of (b.marks[n]||[])){
+    const [lx, ly] = [occ.label[0]*W, occ.label[1]*H];
+    for(const t of occ.tips||[]){ const [tx, ty] = [t[0]*W, t[1]*H]; if(Math.hypot(tx-lx, ty-ly) > R*1.2) svg += `<line x1="${lx}" y1="${ly}" x2="${tx}" y2="${ty}" class="mk-line"/><circle cx="${tx}" cy="${ty}" r="${R*0.55}" class="mk-tip"/><circle cx="${tx}" cy="${ty}" r="${R*0.55}" class="mk-pulse"/>`; }
+    svg += `<circle cx="${lx}" cy="${ly}" r="${R}" class="mk-ring"/>`;
+  }
+  fig.querySelector(".fig-marks").innerHTML = svg;
+  fig.querySelectorAll(".leg-link").forEach(x=>x.classList.toggle("on", nums.includes(x.dataset.n)));
+  if(scroll) scrollToEl(fig.querySelector(".fig-btn") || fig, false);
+}
+function resolveRefs(){
+  doc.querySelectorAll(".cref").forEach(a => { const id = figIndex[a.dataset.fig]; const b = id && figBlocks[id];
+    if(!(b && b.marks && b.marks[a.dataset.n])) a.replaceWith(document.createTextNode(a.textContent)); else a.title = `${a.dataset.fig}, Nr. ${a.dataset.n} zeigen`; });
+}
+window.showSchmierstelle = nums => { const id = figBySpec["p25-1"]; if(!id) return; location.hash = "anleitung-s24"; setTimeout(()=>showMark(id, nums, true), 120); };
 
 /* ---------- Suche ---------- */
 let index = [];
@@ -180,6 +226,10 @@ function observe(){ doc.querySelectorAll(".pg").forEach(p=>io.observe(p)); }
 document.getElementById("v-anleitung").addEventListener("click", e=>{
   const blk = e.target.closest("[data-blk]");
   if(blk){ e.preventDefault(); scrollToEl(document.getElementById(blk.dataset.blk), true); return; }
+  const cr = e.target.closest(".cref");
+  if(cr){ e.preventDefault(); showMark(figIndex[cr.dataset.fig], cr.dataset.n, true); return; }
+  const ll = e.target.closest(".leg-link");
+  if(ll){ showMark(ll.closest(".b-fig").id, ll.dataset.n, false); return; }
   const fr = e.target.closest("[data-fig]");
   if(fr){ e.preventDefault(); const id = figIndex[fr.dataset.fig]; if(id) scrollToEl(document.getElementById(id), true); return; }
   const fb = e.target.closest(".fig-btn"); if(fb){ openLightbox(fb.dataset.src, fb.querySelector("img").alt); return; }
@@ -235,6 +285,8 @@ function suggestInterval(bh, groups){
   for(const g of groups) if(r>0 && r % g.h === 0) best = g.h;
   return best;
 }
+function nrList(t){ const out=[]; for(const part of String(t).split(",")){ const m=/(\d+)\s*[-–]\s*(\d+)/.exec(part); if(m){ for(let i=+m[1];i<=+m[2];i++) out.push(String(i)); } else { const n=part.trim(); if(/^\d+$/.test(n)) out.push(n); } } return out; }
+function nrChip(t){ const l = nrList(t); return l.length ? `<button type="button" class="w-nr w-nr-btn" data-schmier="${l.join(",")}" title="Im Schmierplan zeigen">${esc(t)}</button>` : `<span class="w-nr">${esc(t)}</span>`; }
 function buildWartung(){
   const box = document.getElementById("wartung"); if(!box) return;
   const groups = wGroups();
@@ -252,7 +304,7 @@ function buildWartung(){
           <p>Begonnen ${fmtDT(run.start)}${run.bh!=null?` · Stand ${run.bh.toLocaleString("de-DE")} Bh`:""}</p></div>
           <div class="w-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${done}"><span style="width:${pct}%"></span><b>${done} / ${all}</b></div></header>
         ${groups.filter(g=>g.h<=run.interval).map(g=>{ const its = run.items.filter(i=>i.g===g.h); return `<div class="w-run-g"><h4>aus „alle ${g.h.toLocaleString("de-DE")} Betriebsstunden“</h4><ul>${its.map(i=>`
-          <li class="${i.done?"is-done":""}"><label><input type="checkbox" data-run="${i.k}" ${i.done?"checked":""}><span class="w-t">${inline(i.text)}${i.doneAt?`<small>erledigt ${fmtDT(i.doneAt)}</small>`:""}</span></label>${i.nr?`<span class="w-nr" title="Nr. im Schmierplan">${esc(i.nr)}</span>`:""}</li>`).join("")}</ul></div>`; }).join("")}
+          <li class="${i.done?"is-done":""}"><label><input type="checkbox" data-run="${i.k}" ${i.done?"checked":""}><span class="w-t">${inline(i.text)}${i.doneAt?`<small>erledigt ${fmtDT(i.doneAt)}</small>`:""}</span></label>${i.nr?nrChip(i.nr):""}</li>`).join("")}</ul></div>`; }).join("")}
         <label class="w-note"><span>Notizen (z. B. verwendetes Öl, Auffälligkeiten)</span><textarea id="wnote" rows="3">${esc(run.note||"")}</textarea></label>
         <div class="row w-run-act">
           <button class="btn" id="wfinish">${done===all?"Wartung abschließen":`Abschließen (${all-done} offen)`}</button>
@@ -273,7 +325,7 @@ function buildWartung(){
     }
     h += `<details class="w-over"${run?"":" open"}><summary>Übersicht aller Intervalle</summary><div class="w-grid">${groups.map(g=>`
       <section class="w-card"><header><h3>alle ${g.h.toLocaleString("de-DE")} Betriebsstunden</h3><small class="w-due">${due(g.h)}</small></header>
-      <ul>${g.items.map(i=>`<li><span>${inline(i.text)}</span>${i.nr?`<span class="w-nr">${esc(i.nr)}</span>`:""}</li>`).join("")}</ul></section>`).join("")}</div></details>`;
+      <ul>${g.items.map(i=>`<li><span>${inline(i.text)}</span>${i.nr?nrChip(i.nr):""}</li>`).join("")}</ul></section>`).join("")}</div></details>`;
     h += `<section class="w-hist"><h3>Verlauf</h3>${hist.length?`<ul>${hist.slice().reverse().map((e,ri)=>{ const i = hist.length-1-ri; const d = e.items.filter(x=>x.done).length; return `
       <li><details><summary><b>${fmtD(e.end)}</b> · ${e.interval.toLocaleString("de-DE")}-h-Wartung${e.bh!=null?` · ${e.bh.toLocaleString("de-DE")} Bh`:""} <span class="badge ${d===e.items.length?"b-ok":"b-warn"}">${d}/${e.items.length}</span></summary>
         <ul class="w-hist-items">${e.items.map(x=>`<li class="${x.done?"is-done":"is-open"}">${x.done?"✓":"–"} ${esc(plain(x.text))}</li>`).join("")}</ul>
@@ -317,6 +369,7 @@ function buildWartung(){
     if(navigator.vibrate) try{ navigator.vibrate(10); }catch(_){}
   });
   box.addEventListener("click", e => {
+    const sm = e.target.closest("[data-schmier]"); if(sm){ e.preventDefault(); window.showSchmierstelle(sm.dataset.schmier); return; }
     const ib = e.target.closest("[data-int]"); if(ib){ box.querySelectorAll("[data-int]").forEach(b=>b.setAttribute("aria-checked", String(b===ib))); updateCount(); return; }
     if(e.target.closest("#wgo")){ const iv = selInt(); const bhN = num(LS.get(K_BH,""));
       const items = []; for(const g of groups) if(g.h<=iv) g.items.forEach((it,i)=>items.push({k:g.h+":"+i, g:g.h, text:it.text, nr:it.nr, done:false, doneAt:null}));
