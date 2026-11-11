@@ -1038,12 +1038,12 @@ function fit(){sizeStage();const r=svg.getBoundingClientRect();if(!r.width)retur
 function zoomAt(f,cx,cy){const r=svg.getBoundingClientRect();const px=view.x+(cx-r.left)/r.width*view.w, py=view.y+(cy-r.top)/r.height*view.h;
   const nw=Math.min(Math.max(view.w*f,120),W*3); const k=nw/view.w; view.x=px-(px-view.x)*k; view.y=py-(py-view.y)*k; view.w=nw; view.h*=k; setVB()}
 const ptrs=new Map(); let dragMoved=false, pinch0=null, start=null;
-svg.addEventListener("pointerdown",e=>{svg.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});dragMoved=false;start={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};
+svg.addEventListener("pointerdown",e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});dragMoved=false;start={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};
   if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),w:view.w}}});
 svg.addEventListener("pointermove",e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   const r=svg.getBoundingClientRect();
-  if(ptrs.size===2&&pinch0){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const f=(pinch0.w*pinch0.d/d)/view.w;zoomAt(f,(a.x+b.x)/2,(a.y+b.y)/2);dragMoved=true;return}
-  const dx=e.clientX-start.x, dy=e.clientY-start.y; if(Math.abs(dx)+Math.abs(dy)>4){dragMoved=true;svg.classList.add("dragging")}
+  if(ptrs.size===2&&pinch0){const [a,b]=[...ptrs.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);const f=(pinch0.w*pinch0.d/d)/view.w;zoomAt(f,(a.x+b.x)/2,(a.y+b.y)/2);dragMoved=true;for(const id of ptrs.keys()){try{if(!svg.hasPointerCapture(id))svg.setPointerCapture(id)}catch(_){}}return}
+  const dx=e.clientX-start.x, dy=e.clientY-start.y; if(Math.abs(dx)+Math.abs(dy)>4){dragMoved=true;svg.classList.add("dragging");for(const id of ptrs.keys()){try{if(!svg.hasPointerCapture(id))svg.setPointerCapture(id)}catch(_){}}}
   if(dragMoved&&ptrs.size===1){view.x=start.vx-dx/r.width*view.w;view.y=start.vy-dy/r.height*view.h;setVB()}});
 const endPtr=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;if(ptrs.size===1){const p=[...ptrs.values()][0];start={x:p.x,y:p.y,vx:view.x,vy:view.y}}svg.classList.remove("dragging");setTimeout(()=>{if(!ptrs.size)dragMoved=false},0)};
 svg.addEventListener("pointerup",e=>{const wasDrag=dragMoved;endPtr(e);if(!wasDrag&&e.target.closest&&!e.target.closest(".wire,.comp"))select(null)});
