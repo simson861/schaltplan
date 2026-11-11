@@ -152,6 +152,7 @@ function stemsBefore(a){
   const words = t.replace(/\([^)]*\)/g," ").split(/[^A-Za-zÄÖÜäöüß]+/).filter(Boolean).slice(-3);
   return words.filter(w=>w.length>=5).map(w=>w.toLowerCase().slice(0,5));
 }
+const NOFALLBACK = new Set([]);
 function resolveRefs(){
   doc.querySelectorAll(".cref").forEach(a => {
     const n = a.dataset.n; let id = figIndex[a.dataset.fig]; let b = id && figBlocks[id];
@@ -162,7 +163,9 @@ function resolveRefs(){
         const pg = a.closest(".pg"); const pgs = [pg, pg.previousElementSibling].filter(Boolean);
         const cand = pgs.flatMap(x=>[...x.querySelectorAll(".b-fig")].map(f=>f.id));
         const hit = cand.find(fid => ok(figBlocks[fid]));
-        if(hit){ id = hit; b = figBlocks[hit]; a.dataset.fig = b.label; } else { b = null; }
+        if(hit){ id = hit; b = figBlocks[hit]; a.dataset.fig = b.label; }
+        else if(!(b && b.marks && b.marks[n] && !NOFALLBACK.has(a.closest(".pg").dataset.p+"|"+a.dataset.fig+"|"+n))) b = null;
+        else a.dataset.fb = "1";
       }
     }
     if(!(b && b.marks && b.marks[n])) a.replaceWith(document.createTextNode(a.textContent)); else a.title = `${a.dataset.fig}, Nr. ${n} zeigen`;
